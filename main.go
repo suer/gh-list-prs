@@ -2,25 +2,48 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/cli/go-gh/v2/pkg/api"
+	graphql "github.com/cli/shurcooL-graphql"
 )
 
 func main() {
-	fmt.Println("hi world, this is the gh-list-prs extension!")
-	client, err := api.DefaultRESTClient()
+	client, err := api.DefaultGraphQLClient()
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
-	response := struct {Login string}{}
-	err = client.Get("user", &response)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Printf("running as %s\n", response.Login)
-}
 
-// For more examples of using go-gh, see:
-// https://github.com/cli/go-gh/blob/trunk/example_gh_test.go
+	var query struct {
+		Search struct {
+			Nodes []struct {
+				PullRequest struct {
+					Number int
+					Title  string
+					Url    string
+					Author struct {
+						Login string
+					}
+					Repository struct {
+						Name string
+					}
+				} `graphql:"... on PullRequest"`
+			}
+		} `graphql:"search(first: $first, type: ISSUE, query: $query)"`
+	}
+	org := os.Args[1] // TODO
+	variables := map[string]interface{}{
+		"first": graphql.Int(30),
+		"query": graphql.String(fmt.Sprintf("is:open is:pr org:%s", org)),
+	}
+	err = client.Query("PullRequests", &query, variables)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, node := range query.Search.Nodes {
+		pr := node.PullRequest
+		fmt.Printf("%s\t#%d\t%s\t%s\t%s\n", pr.Repository.Name, pr.Number, pr.Author.Login, pr.Title, pr.Url)
+	}
+}
