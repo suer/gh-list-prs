@@ -36,8 +36,8 @@ type query struct {
 }
 
 type Options struct {
-	Limit   int
-	Exclude string
+	Limit    int
+	Excludes *[]string
 }
 
 func rootCmd() *cobra.Command {
@@ -58,7 +58,7 @@ func rootCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Exclude, "exclude", "e", "", "exclude repositories matching the given search query")
+	opts.Excludes = cmd.Flags().StringArrayP("exclude", "e", []string{}, "exclude repositories")
 	cmd.Flags().IntVarP(&opts.Limit, "limit", "l", 50, "Max number of search results in all repository")
 	return cmd
 }
@@ -69,10 +69,15 @@ func run(org string, opts *Options) error {
 		return err
 	}
 
+	queryString := fmt.Sprintf("is:open is:pr org:%s", org)
+	for _, exclude := range *opts.Excludes {
+		queryString += fmt.Sprintf(" -repo:%s/%s", org, exclude)
+	}
+
 	var query = query{}
 	variables := map[string]interface{}{
 		"first": graphql.Int(opts.Limit),
-		"query": graphql.String(fmt.Sprintf("is:open is:pr org:%s", org)),
+		"query": graphql.String(queryString),
 	}
 	err = client.Query("PullRequests", &query, variables)
 	if err != nil {
