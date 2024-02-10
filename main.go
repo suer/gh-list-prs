@@ -85,11 +85,11 @@ func run(org string, opts *Options) error {
 		return err
 	}
 
-	repo_to_prs := make(map[string][]interface{})
+	repo_to_prs := make(map[string][]PullRequest)
 	for _, node := range query.Search.Nodes {
 		pr := node.PullRequest
 		if _, ok := repo_to_prs[pr.Repository.Name]; !ok {
-			repo_to_prs[pr.Repository.Name] = []interface{}{}
+			repo_to_prs[pr.Repository.Name] = []PullRequest{}
 		}
 		repo_to_prs[pr.Repository.Name] = append(repo_to_prs[pr.Repository.Name], pr)
 	}
@@ -99,7 +99,7 @@ func run(org string, opts *Options) error {
 	return nil
 }
 
-func print_result(repo_to_prs map[string][]interface{}) {
+func print_result(repo_to_prs map[string][]PullRequest) {
 	repos := []string{}
 	for repo := range repo_to_prs {
 		repos = append(repos, repo)
@@ -110,10 +110,9 @@ func print_result(repo_to_prs map[string][]interface{}) {
 		fmt.Print(aurora.Gray(0, fmt.Sprintf("# %s\n", repo)).BgGray(18))
 		prs := repo_to_prs[repo]
 		sort.Slice(prs, func(i, j int) bool {
-			return prs[i].(PullRequest).Number > prs[j].(PullRequest).Number
+			return prs[i].Number > prs[j].Number
 		})
 		for _, pr := range prs {
-			pr := pr.(PullRequest)
 			number := aurora.Magenta(fmt.Sprintf("#%d", pr.Number)).Bold().Hyperlink(pr.Url)
 			login := aurora.Green(pr.Author.Login)
 			fmt.Printf("%s\t%s\t%s\t%s\n", number, login, pr.Title, pr.UpdatedAt.In(time.Local).Format("2006-01-02 15:04:05"))
