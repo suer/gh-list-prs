@@ -1,14 +1,15 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"os"
 	"sort"
 	"time"
 
 	"github.com/cli/go-gh/v2/pkg/api"
 	graphql "github.com/cli/shurcooL-graphql"
+	"github.com/spf13/cobra"
 )
 
 type PullRequest struct {
@@ -34,21 +35,48 @@ type query struct {
 	Search `graphql:"search(first: $first, type: ISSUE, query: $query)"`
 }
 
-func main() {
+type Options struct {
+	Limit   int
+	Exclude string
+}
+
+func rootCmd() *cobra.Command {
+	opts := &Options{}
+	cmd := &cobra.Command{
+		Use:           "gh list-prs <org>",
+		Short:         "List PRs for an org",
+		Args:          cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+		SilenceErrors: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			org := args[0]
+
+			if opts.Limit <= 0 {
+				return errors.New("invalid limit")
+			}
+
+			return run(org, opts)
+		},
+	}
+
+	cmd.Flags().StringVarP(&opts.Exclude, "exclude", "e", "", "exclude repositories matching the given search query")
+	cmd.Flags().IntVarP(&opts.Limit, "limit", "l", 50, "Max number of search results in all repository")
+	return cmd
+}
+
+func run(org string, opts *Options) error {
 	client, err := api.DefaultGraphQLClient()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	var query = query{}
-	org := os.Args[1] // TODO
 	variables := map[string]interface{}{
-		"first": graphql.Int(30),
+		"first": graphql.Int(opts.Limit),
 		"query": graphql.String(fmt.Sprintf("is:open is:pr org:%s", org)),
 	}
 	err = client.Query("PullRequests", &query, variables)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	repo_to_prs := make(map[string][]interface{})
@@ -77,5 +105,15 @@ func main() {
 			fmt.Printf("#%d\t%s\t%s\t%s\t%s\n", pr.Number, pr.Author.Login, pr.Title, pr.Url, pr.UpdatedAt.In(time.Local).Format("2006-01-02 15:04:05"))
 		}
 		fmt.Println()
+	}
+
+	return nil
+}
+
+func main() {
+	cmd := rootCmd()
+	if err := cmd.Execute(); err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
 	}
 }
