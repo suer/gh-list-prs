@@ -9,6 +9,7 @@ import (
 
 	"github.com/cli/go-gh/v2/pkg/api"
 	graphql "github.com/cli/shurcooL-graphql"
+	"github.com/logrusorgru/aurora/v4"
 	"github.com/spf13/cobra"
 )
 
@@ -93,6 +94,12 @@ func run(org string, opts *Options) error {
 		repo_to_prs[pr.Repository.Name] = append(repo_to_prs[pr.Repository.Name], pr)
 	}
 
+	print_result(repo_to_prs)
+
+	return nil
+}
+
+func print_result(repo_to_prs map[string][]interface{}) {
 	repos := []string{}
 	for repo := range repo_to_prs {
 		repos = append(repos, repo)
@@ -100,19 +107,19 @@ func run(org string, opts *Options) error {
 	sort.Strings(repos)
 
 	for _, repo := range repos {
-		fmt.Printf("# %s\n", repo)
+		fmt.Print(aurora.Gray(0, fmt.Sprintf("# %s\n", repo)).BgGray(18))
 		prs := repo_to_prs[repo]
 		sort.Slice(prs, func(i, j int) bool {
 			return prs[i].(PullRequest).Number > prs[j].(PullRequest).Number
 		})
 		for _, pr := range prs {
 			pr := pr.(PullRequest)
-			fmt.Printf("#%d\t%s\t%s\t%s\t%s\n", pr.Number, pr.Author.Login, pr.Title, pr.Url, pr.UpdatedAt.In(time.Local).Format("2006-01-02 15:04:05"))
+			number := aurora.Magenta(fmt.Sprintf("#%d", pr.Number)).Bold().Hyperlink(pr.Url)
+			login := aurora.Green(pr.Author.Login)
+			fmt.Printf("%s\t%s\t%s\t%s\n", number, login, pr.Title, pr.UpdatedAt.In(time.Local).Format("2006-01-02 15:04:05"))
 		}
 		fmt.Println()
 	}
-
-	return nil
 }
 
 func main() {
