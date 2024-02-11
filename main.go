@@ -70,7 +70,7 @@ func run(org string, opts *Options) error {
 		return err
 	}
 
-	queryString := fmt.Sprintf("is:open is:pr org:%s", org)
+	queryString := fmt.Sprintf("is:open is:pr archived:false org:%s", org)
 	for _, exclude := range *opts.Excludes {
 		queryString += fmt.Sprintf(" -repo:%s/%s", org, exclude)
 	}
