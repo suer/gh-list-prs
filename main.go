@@ -71,12 +71,20 @@ func rootCmd() *cobra.Command {
 }
 
 func run(org string, opts *Options) error {
-	client, err := api.DefaultGraphQLClient()
+	queryString := formatQueryString(org, opts)
+
+	repoToPrs, err := fetchPullRequests(queryString, opts.Limit)
 	if err != nil {
 		return err
 	}
 
-	queryString := fmt.Sprintf("is:open is:pr archived:false org:%s", org)
+	printResult(repoToPrs)
+
+	return nil
+}
+
+func formatQueryString(org string, opts *Options) string {
+	queryString := fmt.Sprintf("is:mpen is:pr archived:false org:%s", org)
 	for _, exclude := range *opts.Excludes {
 		queryString += fmt.Sprintf(" -repo:%s/%s", org, exclude)
 	}
@@ -91,17 +99,27 @@ func run(org string, opts *Options) error {
 		fmt.Printf("query: %s\n", queryString)
 	}
 
+	return queryString
+}
+
+func fetchPullRequests(queryString string, limit int) (map[string][]PullRequest, error) {
+	repoToPrs := make(map[string][]PullRequest)
+
+	client, err := api.DefaultGraphQLClient()
+	if err != nil {
+		return nil, err
+	}
+
 	var query = query{}
 	variables := map[string]interface{}{
-		"first": graphql.Int(opts.Limit),
+		"first": graphql.Int(limit),
 		"query": graphql.String(queryString),
 	}
 	err = client.Query("PullRequests", &query, variables)
 	if err != nil {
-		return err
+		return repoToPrs, err
 	}
 
-	repoToPrs := make(map[string][]PullRequest)
 	for _, node := range query.Search.Nodes {
 		pr := node.PullRequest
 		if _, ok := repoToPrs[pr.Repository.Name]; !ok {
@@ -109,10 +127,7 @@ func run(org string, opts *Options) error {
 		}
 		repoToPrs[pr.Repository.Name] = append(repoToPrs[pr.Repository.Name], pr)
 	}
-
-	printResult(repoToPrs)
-
-	return nil
+	return repoToPrs, nil
 }
 
 func printResult(repoToPrs map[string][]PullRequest) {
