@@ -122,6 +122,23 @@ func print_result(repo_to_prs map[string][]PullRequest) {
 	}
 	sort.Strings(repos)
 
+	numberWidth := 0
+	authorWidth := 0
+	createdAtWidth := len("2006-01-02 15:04:05")
+	for _, repo := range repos {
+		for _, pr := range repo_to_prs[repo] {
+			nWidth := len(fmt.Sprintf("#%d", pr.Number))
+			if nWidth > numberWidth {
+				numberWidth = nWidth
+			}
+
+			aWidth := len(pr.Author.Login)
+			if aWidth > authorWidth {
+				authorWidth = aWidth
+			}
+		}
+	}
+
 	for _, repo := range repos {
 		fmt.Print(aurora.Gray(0, fmt.Sprintf("# %s\n", repo)).BgGray(18))
 		prs := repo_to_prs[repo]
@@ -130,8 +147,9 @@ func print_result(repo_to_prs map[string][]PullRequest) {
 		})
 		for _, pr := range prs {
 			number := aurora.Magenta(fmt.Sprintf("#%d", pr.Number)).Bold().Hyperlink(pr.Url)
+			numberPadding := numberWidth - len(fmt.Sprintf("#%d", pr.Number))
 			login := aurora.Green(pr.Author.Login)
-			fmt.Printf("%s\t%s\t%s\t%s\n", number, login, pr.Title, pr.UpdatedAt.In(time.Local).Format("2006-01-02 15:04:05"))
+			fmt.Printf("%s%-*s%-*s%-*s%s\n", number, numberPadding+1, "", authorWidth+1, login, createdAtWidth+1, pr.UpdatedAt.In(time.Local).Format("2006-01-02 15:04:05"), pr.Title)
 		}
 		fmt.Println()
 	}
