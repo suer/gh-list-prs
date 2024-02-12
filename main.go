@@ -124,7 +124,7 @@ func printResult(repoToPrs map[string][]PullRequest) {
 
 	numberWidth := 0
 	authorWidth := 0
-	createdAtWidth := len("2006-01-02 15:04:05")
+	createdAtWidth := len("2006-01-02")
 	for _, repo := range repos {
 		for _, pr := range repoToPrs[repo] {
 			nWidth := len(fmt.Sprintf("#%d", pr.Number))
@@ -149,7 +149,7 @@ func printResult(repoToPrs map[string][]PullRequest) {
 			number := aurora.Magenta(fmt.Sprintf("#%d", pr.Number)).Bold().Hyperlink(pr.Url)
 			numberPadding := numberWidth - len(fmt.Sprintf("#%d", pr.Number))
 			login := aurora.Green(pr.Author.Login)
-			fmt.Printf("%s%-*s%-*s%-*s%s\n", number, numberPadding+1, "", authorWidth+1, login, createdAtWidth+1, pr.UpdatedAt.In(time.Local).Format("2006-01-02 15:04:05"), pr.Title)
+			fmt.Printf("%s%-*s%-*s%-*s%s\n", number, numberPadding+1, "", authorWidth+1, login, createdAtWidth+1, pr.UpdatedAt.In(time.Local).Format("2006-01-02"), pr.Title)
 		}
 		fmt.Println()
 	}
