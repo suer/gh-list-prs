@@ -37,9 +37,10 @@ type query struct {
 }
 
 type Options struct {
-	Limit    int
-	Excludes *[]string
-	Author   string
+	Limit             int
+	Excludes          *[]string
+	Author            string
+	AdditionalQueries *[]string
 }
 
 func rootCmd() *cobra.Command {
@@ -63,6 +64,7 @@ func rootCmd() *cobra.Command {
 	opts.Excludes = cmd.Flags().StringArrayP("exclude", "e", []string{}, "exclude repositories")
 	cmd.Flags().IntVarP(&opts.Limit, "limit", "l", 50, "Max number of search results in all repository")
 	cmd.Flags().StringVarP(&opts.Author, "author", "a", "", "Filter by author")
+	opts.AdditionalQueries = cmd.Flags().StringArrayP("additional-query", "q", []string{}, "additional query")
 	return cmd
 }
 
@@ -78,6 +80,9 @@ func run(org string, opts *Options) error {
 	}
 	if opts.Author != "" {
 		queryString += fmt.Sprintf(" author:%s", opts.Author)
+	}
+	for _, query := range *opts.AdditionalQueries {
+		queryString += fmt.Sprintf(" %s", query)
 	}
 
 	var query = query{}
