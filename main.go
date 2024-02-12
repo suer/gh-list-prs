@@ -101,23 +101,23 @@ func run(org string, opts *Options) error {
 		return err
 	}
 
-	repo_to_prs := make(map[string][]PullRequest)
+	repoToPrs := make(map[string][]PullRequest)
 	for _, node := range query.Search.Nodes {
 		pr := node.PullRequest
-		if _, ok := repo_to_prs[pr.Repository.Name]; !ok {
-			repo_to_prs[pr.Repository.Name] = []PullRequest{}
+		if _, ok := repoToPrs[pr.Repository.Name]; !ok {
+			repoToPrs[pr.Repository.Name] = []PullRequest{}
 		}
-		repo_to_prs[pr.Repository.Name] = append(repo_to_prs[pr.Repository.Name], pr)
+		repoToPrs[pr.Repository.Name] = append(repoToPrs[pr.Repository.Name], pr)
 	}
 
-	print_result(repo_to_prs)
+	printResult(repoToPrs)
 
 	return nil
 }
 
-func print_result(repo_to_prs map[string][]PullRequest) {
+func printResult(repoToPrs map[string][]PullRequest) {
 	repos := []string{}
-	for repo := range repo_to_prs {
+	for repo := range repoToPrs {
 		repos = append(repos, repo)
 	}
 	sort.Strings(repos)
@@ -126,7 +126,7 @@ func print_result(repo_to_prs map[string][]PullRequest) {
 	authorWidth := 0
 	createdAtWidth := len("2006-01-02 15:04:05")
 	for _, repo := range repos {
-		for _, pr := range repo_to_prs[repo] {
+		for _, pr := range repoToPrs[repo] {
 			nWidth := len(fmt.Sprintf("#%d", pr.Number))
 			if nWidth > numberWidth {
 				numberWidth = nWidth
@@ -141,7 +141,7 @@ func print_result(repo_to_prs map[string][]PullRequest) {
 
 	for _, repo := range repos {
 		fmt.Print(aurora.Gray(0, fmt.Sprintf("# %s\n", repo)).BgGray(18))
-		prs := repo_to_prs[repo]
+		prs := repoToPrs[repo]
 		sort.Slice(prs, func(i, j int) bool {
 			return prs[i].Number > prs[j].Number
 		})
