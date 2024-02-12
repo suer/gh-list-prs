@@ -39,6 +39,7 @@ type query struct {
 type Options struct {
 	Limit    int
 	Excludes *[]string
+	Author   string
 }
 
 func rootCmd() *cobra.Command {
@@ -61,6 +62,7 @@ func rootCmd() *cobra.Command {
 
 	opts.Excludes = cmd.Flags().StringArrayP("exclude", "e", []string{}, "exclude repositories")
 	cmd.Flags().IntVarP(&opts.Limit, "limit", "l", 50, "Max number of search results in all repository")
+	cmd.Flags().StringVarP(&opts.Author, "author", "a", "", "Filter by author")
 	return cmd
 }
 
@@ -73,6 +75,9 @@ func run(org string, opts *Options) error {
 	queryString := fmt.Sprintf("is:open is:pr archived:false org:%s", org)
 	for _, exclude := range *opts.Excludes {
 		queryString += fmt.Sprintf(" -repo:%s/%s", org, exclude)
+	}
+	if opts.Author != "" {
+		queryString += fmt.Sprintf(" author:%s", opts.Author)
 	}
 
 	var query = query{}
