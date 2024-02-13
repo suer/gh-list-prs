@@ -17,7 +17,7 @@ type Options struct {
 }
 
 func rootCmd() *cobra.Command {
-	opts := &Options{}
+	opts := &Options{Excludes: &[]string{}, AdditionalQueries: &[]string{}}
 	cmd := &cobra.Command{
 		Use:           "gh list-prs <org>",
 		Short:         "List PRs for an org",
@@ -34,10 +34,10 @@ func rootCmd() *cobra.Command {
 		},
 	}
 
-	opts.Excludes = cmd.Flags().StringArrayP("exclude", "e", []string{}, "exclude repositories")
+	cmd.Flags().StringArrayVarP(opts.Excludes, "exclude", "e", []string{}, "exclude repositories")
 	cmd.Flags().IntVarP(&opts.Limit, "limit", "l", 50, "Max number of search results in all repository")
 	cmd.Flags().StringVarP(&opts.Author, "author", "a", "", "Filter by author")
-	opts.AdditionalQueries = cmd.Flags().StringArrayP("additional-query", "q", []string{}, "additional query")
+	cmd.Flags().StringArrayVarP(opts.AdditionalQueries, "additional-query", "q", []string{}, "additional query")
 	cmd.Flags().BoolVarP(&opts.Verbose, "verbose", "v", false, "verbose output")
 	cmd.Flags().BoolVarP(&opts.Interactive, "interactive", "i", false, "interactive mode")
 	return cmd
