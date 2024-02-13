@@ -58,10 +58,22 @@ type PullRequestItem struct {
 	RepositoryName string
 }
 
+func (pri *PullRequestItem) numberWithLink() aurora.Value {
+	return aurora.Magenta(fmt.Sprintf("#%d", pri.Number)).Bold().Hyperlink(pri.Url)
+}
+
+func (pri *PullRequestItem) printLine(numberWidth int, authorWidth, updatedAtWidth int) {
+	number := pri.numberWithLink()
+	numberPadding := numberWidth - len(fmt.Sprintf("#%d", pri.Number))
+	login := aurora.Green(pri.Author)
+	fmt.Printf("%s%-*s%-*s%-*s%s\n", number, numberPadding+1, "", authorWidth+1, login, updatedAtWidth+1, pri.UpdatedAt.In(time.Local).Format("2006-01-02"), pri.Title)
+
+}
+
 func (ri *RepositoryItem) printList() {
 	numberWidth := 0
 	authorWidth := 0
-	createdAtWidth := len("2006-01-02")
+	updatedAtWidth := len("2006-01-02")
 	for _, pr := range ri.PullRequestItems {
 		nWidth := len(fmt.Sprintf("#%d", pr.Number))
 		if nWidth > numberWidth {
@@ -81,10 +93,7 @@ func (ri *RepositoryItem) printList() {
 	})
 
 	for _, pr := range prs {
-		number := aurora.Magenta(fmt.Sprintf("#%d", pr.Number)).Bold().Hyperlink(pr.Url)
-		numberPadding := numberWidth - len(fmt.Sprintf("#%d", pr.Number))
-		login := aurora.Green(pr.Author)
-		fmt.Printf("%s%-*s%-*s%-*s%s\n", number, numberPadding+1, "", authorWidth+1, login, createdAtWidth+1, pr.UpdatedAt.In(time.Local).Format("2006-01-02"), pr.Title)
+		pr.printLine(numberWidth, authorWidth, updatedAtWidth)
 	}
 }
 
