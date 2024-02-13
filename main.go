@@ -7,9 +7,12 @@ import (
 	"sort"
 	"time"
 
+	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/cli/go-gh/v2/pkg/api"
 	graphql "github.com/cli/shurcooL-graphql"
 	"github.com/logrusorgru/aurora/v4"
+	"github.com/pkg/browser"
 	"github.com/spf13/cobra"
 )
 
@@ -42,6 +45,7 @@ type Options struct {
 	Author            string
 	AdditionalQueries *[]string
 	Verbose           bool
+	Interactive       bool
 }
 
 type RepositoryItem struct {
@@ -50,21 +54,35 @@ type RepositoryItem struct {
 }
 
 type PullRequestItem struct {
-	Number    int
-	Title     string
-	Author    string
-	UpdatedAt time.Time
-	Url       string
+	Number         int
+	Title          string
+	Author         string
+	UpdatedAt      time.Time
+	Url            string
+	RepositoryName string
 }
 
 func (pr *PullRequest) toPullRequestItem() PullRequestItem {
 	return PullRequestItem{
-		Number:    pr.Number,
-		Title:     pr.Title,
-		Author:    pr.Author.Login,
-		UpdatedAt: pr.UpdatedAt,
-		Url:       pr.Url,
+		Number:         pr.Number,
+		Title:          pr.Title,
+		Author:         pr.Author.Login,
+		UpdatedAt:      pr.UpdatedAt,
+		Url:            pr.Url,
+		RepositoryName: pr.Repository.Name,
 	}
+}
+
+type listItem struct {
+	pullRequestItem PullRequestItem
+}
+
+func (li listItem) Title() string {
+	return fmt.Sprintf("%s #%d", li.pullRequestItem.RepositoryName, li.pullRequestItem.Number)
+}
+func (li listItem) Description() string { return li.pullRequestItem.Title }
+func (li listItem) FilterValue() string {
+	return li.pullRequestItem.RepositoryName + li.pullRequestItem.Author + li.pullRequestItem.Title
 }
 
 func rootCmd() *cobra.Command {
@@ -90,6 +108,7 @@ func rootCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&opts.Author, "author", "a", "", "Filter by author")
 	opts.AdditionalQueries = cmd.Flags().StringArrayP("additional-query", "q", []string{}, "additional query")
 	cmd.Flags().BoolVarP(&opts.Verbose, "verbose", "v", false, "verbose output")
+	cmd.Flags().BoolVarP(&opts.Interactive, "interactive", "i", false, "interactive mode")
 	return cmd
 }
 
@@ -101,7 +120,11 @@ func run(org string, opts *Options) error {
 		return err
 	}
 
-	printResult(repositories)
+	if opts.Interactive {
+		printResultInteractive(org, repositories)
+	} else {
+		printResult(repositories)
+	}
 
 	return nil
 }
@@ -210,6 +233,55 @@ func printResult(repositories []RepositoryItem) {
 		repo.print()
 		fmt.Println()
 	}
+}
+
+type model struct {
+	list list.Model
+}
+
+func (m model) Init() tea.Cmd {
+	return nil
+}
+
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		if msg.String() == "ctrl+c" {
+			return m, tea.Quit
+		} else if msg.String() == "o" {
+			browser.OpenURL(m.list.SelectedItem().(listItem).pullRequestItem.Url)
+			return m, nil
+		}
+	case tea.WindowSizeMsg:
+		m.list.SetSize(msg.Width, msg.Height)
+	}
+
+	var cmd tea.Cmd
+	m.list, cmd = m.list.Update(msg)
+	return m, cmd
+}
+
+func (m model) View() string {
+	return m.list.View()
+}
+
+func printResultInteractive(org string, repositories []RepositoryItem) error {
+	items := []list.Item{}
+	for _, repo := range repositories {
+		for _, pr := range repo.PullRequestItems {
+			items = append(items, listItem{pullRequestItem: pr})
+		}
+	}
+
+	m := model{list: list.New(items, list.NewDefaultDelegate(), 0, 0)}
+	m.list.Title = fmt.Sprintf("PRs in %s", org)
+	p := tea.NewProgram(m, tea.WithAltScreen())
+
+	if _, err := p.Run(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func main() {
