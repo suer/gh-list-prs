@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/pkg/browser"
@@ -22,6 +23,7 @@ func (li listItem) FilterValue() string {
 
 type model struct {
 	list list.Model
+	keys *listKeyMap
 }
 
 func (m model) Init() tea.Cmd { return nil }
@@ -31,7 +33,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		if msg.String() == "ctrl+c" {
 			return m, tea.Quit
-		} else if msg.String() == "o" {
+		}
+
+		if key.Matches(msg, m.keys.openWithBrowser) {
 			browser.OpenURL(m.list.SelectedItem().(listItem).pullRequestItem.Url)
 			return m, nil
 		}
@@ -46,6 +50,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string { return m.list.View() }
 
+type listKeyMap struct {
+	openWithBrowser key.Binding
+}
+
+func newListKeyMap() *listKeyMap {
+	return &listKeyMap{
+		openWithBrowser: key.NewBinding(
+			key.WithKeys("o"),
+			key.WithHelp("o", "open with browser"),
+		),
+	}
+}
+
 func printResultInteractive(org string, repositories []RepositoryItem) error {
 	items := []list.Item{}
 	for _, repo := range repositories {
@@ -54,7 +71,19 @@ func printResultInteractive(org string, repositories []RepositoryItem) error {
 		}
 	}
 
-	m := model{list: list.New(items, list.NewDefaultDelegate(), 0, 0)}
+	listKeys := newListKeyMap()
+	groceryList := list.New(items, list.NewDefaultDelegate(), 0, 0)
+	groceryList.AdditionalFullHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			listKeys.openWithBrowser,
+		}
+	}
+	groceryList.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			listKeys.openWithBrowser,
+		}
+	}
+	m := model{list: groceryList, keys: listKeys}
 	m.list.Title = fmt.Sprintf("PRs in %s", org)
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
