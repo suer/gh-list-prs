@@ -15,6 +15,7 @@ type PullRequest struct {
 	Title     string
 	Url       string
 	UpdatedAt time.Time
+	IsDraft   bool
 	Author    struct {
 		Login string
 	}
@@ -29,6 +30,7 @@ func (pr *PullRequest) toPullRequestItem() PullRequestItem {
 		Title:          pr.Title,
 		Author:         pr.Author.Login,
 		UpdatedAt:      pr.UpdatedAt,
+		IsDraft:        pr.IsDraft,
 		Url:            pr.Url,
 		RepositoryName: pr.Repository.Name,
 	}
@@ -54,6 +56,7 @@ type PullRequestItem struct {
 	Title          string
 	Author         string
 	UpdatedAt      time.Time
+	IsDraft        bool
 	Url            string
 	RepositoryName string
 }
@@ -64,10 +67,27 @@ func (pri *PullRequestItem) numberWithLink() aurora.Value {
 
 func (pri *PullRequestItem) printLine(numberWidth int, authorWidth, updatedAtWidth int) {
 	number := pri.numberWithLink()
+	if pri.IsDraft {
+		number = aurora.Gray(8, number)
+	}
 	numberPadding := numberWidth - len(fmt.Sprintf("#%d", pri.Number))
-	login := aurora.Green(pri.Author)
-	fmt.Printf("%s%-*s%-*s%-*s%s\n", number, numberPadding+1, "", authorWidth+1, login, updatedAtWidth+1, pri.UpdatedAt.In(time.Local).Format("2006-01-02"), pri.Title)
 
+	login := aurora.Green(pri.Author)
+	if pri.IsDraft {
+		login = aurora.Gray(8, pri.Author)
+	}
+
+	updatedAt := pri.UpdatedAt.In(time.Local).Format("2006-01-02")
+	if pri.IsDraft {
+		updatedAt = aurora.Gray(8, updatedAt).String()
+	}
+
+	title := pri.Title
+	if pri.IsDraft {
+		title = aurora.Gray(8, title+" (draft)").String()
+	}
+
+	fmt.Printf("%s%-*s%-*s%-*s%s\n", number, numberPadding+1, "", authorWidth+1, login, updatedAtWidth+1, updatedAt, title)
 }
 
 func (ri *RepositoryItem) printList() {
