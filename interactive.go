@@ -14,7 +14,7 @@ type listItem struct {
 }
 
 func (li listItem) Title() string {
-	return fmt.Sprintf("%s #%d @%s", li.pullRequestItem.RepositoryName, li.pullRequestItem.Number, li.pullRequestItem.Author)
+	return fmt.Sprintf("%s #%d @%s %s", li.pullRequestItem.RepositoryName, li.pullRequestItem.Number, li.pullRequestItem.Author, li.pullRequestItem.checkStatusSymbol())
 }
 func (li listItem) Description() string { return li.pullRequestItem.Title }
 func (li listItem) FilterValue() string {

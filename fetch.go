@@ -10,6 +10,16 @@ import (
 	"github.com/logrusorgru/aurora/v4"
 )
 
+type Commits struct {
+	Nodes []struct {
+		Commit struct {
+			StatusCheckRollup struct {
+				State string
+			}
+		}
+	}
+}
+
 type PullRequest struct {
 	Number    int
 	Title     string
@@ -22,9 +32,15 @@ type PullRequest struct {
 	Repository struct {
 		Name string
 	}
+	Commits Commits `graphql:"commits(last: 1)"`
 }
 
 func (pr *PullRequest) toPullRequestItem() PullRequestItem {
+	checkStatus := "PENDING"
+	if len(pr.Commits.Nodes) > 0 {
+		checkStatus = pr.Commits.Nodes[0].Commit.StatusCheckRollup.State
+	}
+
 	return PullRequestItem{
 		Number:         pr.Number,
 		Title:          pr.Title,
@@ -33,6 +49,7 @@ func (pr *PullRequest) toPullRequestItem() PullRequestItem {
 		IsDraft:        pr.IsDraft,
 		Url:            pr.Url,
 		RepositoryName: pr.Repository.Name,
+		CheckStatus:    checkStatus,
 	}
 }
 
@@ -59,10 +76,23 @@ type PullRequestItem struct {
 	IsDraft        bool
 	Url            string
 	RepositoryName string
+	CheckStatus    string
 }
 
 func (pri *PullRequestItem) numberWithLink() aurora.Value {
 	return aurora.Magenta(fmt.Sprintf("#%d", pri.Number)).Bold().Hyperlink(pri.Url)
+}
+
+func (pri *PullRequestItem) checkStatusSymbol() string {
+	if pri.CheckStatus == "SUCCESS" {
+		return aurora.Green("✔").String()
+	} else if pri.CheckStatus == "FAILURE" {
+		return aurora.Red("✘").String()
+	} else if pri.CheckStatus == "PENDING" {
+		return "⏳"
+	} else {
+		return ""
+	}
 }
 
 func (pri *PullRequestItem) printLine(numberWidth int, authorWidth, updatedAtWidth int) {
@@ -87,7 +117,7 @@ func (pri *PullRequestItem) printLine(numberWidth int, authorWidth, updatedAtWid
 		title = aurora.Gray(8, title+" (draft)").String()
 	}
 
-	fmt.Printf("%s%-*s%-*s%-*s%s\n", number, numberPadding+1, "", authorWidth+1, login, updatedAtWidth+1, updatedAt, title)
+	fmt.Printf("%s%-*s%-*s%-*s%s %s\n", number, numberPadding+1, "", authorWidth+1, login, updatedAtWidth+1, updatedAt, title, pri.checkStatusSymbol())
 }
 
 func (ri *RepositoryItem) printList() {
