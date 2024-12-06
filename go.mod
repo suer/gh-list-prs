@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/charmbracelet/bubbles v0.20.0
 	github.com/charmbracelet/bubbletea v1.2.4
-	github.com/cli/go-gh/v2 v2.9.0
+	github.com/cli/go-gh/v2 v2.11.1
 	github.com/cli/shurcooL-graphql v0.0.4
 	github.com/logrusorgru/aurora/v4 v4.0.0
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
