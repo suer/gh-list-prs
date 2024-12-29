@@ -20,6 +20,13 @@ gh extension upgrade suer/gh-list-prs
 gh list-prs <org>
 ```
 
+For example, you can get all the pull requests listed in the suer orgazation that have the author suer with the following command:
+
+```bash
+gh list-prs suer -a suer
+```
+
+
 see `gh list-prs --help` for more information.
 
 ## For developers
