@@ -4,8 +4,8 @@ go 1.21
 toolchain go1.24.1
 
 require (
-	github.com/charmbracelet/bubbles v0.20.0
-	github.com/charmbracelet/bubbletea v1.3.0
+	github.com/charmbracelet/bubbles v0.21.0
+	github.com/charmbracelet/bubbletea v1.3.4
 	github.com/cli/go-gh/v2 v2.12.0
 	github.com/cli/shurcooL-graphql v0.0.4
 	github.com/logrusorgru/aurora/v4 v4.0.0
