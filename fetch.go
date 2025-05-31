@@ -136,7 +136,7 @@ func (ri *RepositoryItem) printList() {
 		}
 	}
 
-	fmt.Print(aurora.Gray(0, fmt.Sprintf("# %s\n", ri.Name)).BgGray(18))
+	fmt.Printf("# %s\n", ri.Name)
 	prs := ri.PullRequestItems
 	sort.Slice(prs, func(i, j int) bool {
 		return prs[i].Number > prs[j].Number
