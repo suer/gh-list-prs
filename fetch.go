@@ -79,11 +79,26 @@ type PullRequestItem struct {
 	CheckStatus    string
 }
 
-func (pri *PullRequestItem) numberWithLink() aurora.Value {
-	return aurora.Magenta(fmt.Sprintf("#%d", pri.Number)).Bold().Hyperlink(pri.Url)
+func (pri *PullRequestItem) numberWithLink(noColor bool) string {
+	if noColor {
+		return fmt.Sprintf("#%d", pri.Number)
+	}
+	return aurora.Magenta(fmt.Sprintf("#%d", pri.Number)).Bold().Hyperlink(pri.Url).String()
 }
 
-func (pri *PullRequestItem) checkStatusSymbol() string {
+func (pri *PullRequestItem) checkStatusSymbol(noColor bool) string {
+	if noColor {
+		if pri.CheckStatus == "SUCCESS" {
+			return "✔"
+		} else if pri.CheckStatus == "FAILURE" {
+			return "✘"
+		} else if pri.CheckStatus == "PENDING" {
+			return "⏳"
+		} else {
+			return ""
+		}
+	}
+
 	if pri.CheckStatus == "SUCCESS" {
 		return aurora.Green("✔").String()
 	} else if pri.CheckStatus == "FAILURE" {
@@ -95,32 +110,51 @@ func (pri *PullRequestItem) checkStatusSymbol() string {
 	}
 }
 
-func (pri *PullRequestItem) printLine(numberWidth int, authorWidth, updatedAtWidth int) {
-	number := pri.numberWithLink()
-	if pri.IsDraft {
-		number = aurora.Gray(8, number)
+func (pri *PullRequestItem) printLine(numberWidth int, authorWidth, updatedAtWidth int, noColor bool) {
+	number := pri.numberWithLink(noColor)
+	var numberString string
+	if noColor {
+		numberString = number
+	} else {
+		if pri.IsDraft {
+			numberString = aurora.Gray(8, aurora.Magenta(fmt.Sprintf("#%d", pri.Number)).Bold().Hyperlink(pri.Url)).String()
+		} else {
+			numberString = number
+		}
 	}
+
 	numberPadding := numberWidth - len(fmt.Sprintf("#%d", pri.Number))
 
-	login := aurora.Green(pri.Author)
-	if pri.IsDraft {
-		login = aurora.Gray(8, pri.Author)
+	var login string
+	if noColor {
+		login = pri.Author
+	} else {
+		if pri.IsDraft {
+			login = aurora.Gray(8, pri.Author).String()
+		} else {
+			login = aurora.Green(pri.Author).String()
+		}
 	}
 
 	updatedAt := pri.UpdatedAt.In(time.Local).Format("2006-01-02")
-	if pri.IsDraft {
+	if !noColor && pri.IsDraft {
 		updatedAt = aurora.Gray(8, updatedAt).String()
 	}
 
 	title := pri.Title
 	if pri.IsDraft {
-		title = aurora.Gray(8, title+" (draft)").String()
+		title = title + " (draft)"
+		if !noColor {
+			title = aurora.Gray(8, title).String()
+		}
 	}
 
-	fmt.Printf("%s%-*s%-*s%-*s%s %s\n", number, numberPadding+1, "", authorWidth+1, login, updatedAtWidth+1, updatedAt, title, pri.checkStatusSymbol())
+	statusSymbol := pri.checkStatusSymbol(noColor)
+
+	fmt.Printf("%s%-*s%-*s%-*s%s %s\n", numberString, numberPadding+1, "", authorWidth+1, login, updatedAtWidth+1, updatedAt, title, statusSymbol)
 }
 
-func (ri *RepositoryItem) printList() {
+func (ri *RepositoryItem) printList(opts *Options) {
 	numberWidth := 0
 	authorWidth := 0
 	updatedAtWidth := len("2006-01-02")
@@ -143,7 +177,7 @@ func (ri *RepositoryItem) printList() {
 	})
 
 	for _, pr := range prs {
-		pr.printLine(numberWidth, authorWidth, updatedAtWidth)
+		pr.printLine(numberWidth, authorWidth, updatedAtWidth, opts.NoColor)
 	}
 }
 
