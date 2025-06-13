@@ -14,6 +14,7 @@ type Options struct {
 	AdditionalQueries *[]string
 	Verbose           bool
 	Interactive       bool
+	NoColor           bool
 }
 
 func rootCmd() *cobra.Command {
@@ -40,6 +41,7 @@ func rootCmd() *cobra.Command {
 	cmd.Flags().StringArrayVarP(opts.AdditionalQueries, "additional-query", "q", []string{}, "additional query")
 	cmd.Flags().BoolVarP(&opts.Verbose, "verbose", "v", false, "verbose output")
 	cmd.Flags().BoolVarP(&opts.Interactive, "interactive", "i", false, "interactive mode")
+	cmd.Flags().BoolVar(&opts.NoColor, "no-color", false, "disable color output and show plain URLs")
 	return cmd
 }
 
@@ -54,15 +56,15 @@ func run(org string, opts *Options) error {
 	if opts.Interactive {
 		printResultInteractive(org, repositories)
 	} else {
-		printResult(repositories)
+		printResult(repositories, opts)
 	}
 
 	return nil
 }
 
-func printResult(repositories []RepositoryItem) {
+func printResult(repositories []RepositoryItem, opts *Options) {
 	for _, repo := range repositories {
-		repo.printList()
+		repo.printList(opts)
 		fmt.Println()
 	}
 }
