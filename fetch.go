@@ -111,24 +111,15 @@ func (pri *PullRequestItem) checkStatusSymbol(noColor bool) string {
 }
 
 func (pri *PullRequestItem) printLine(numberWidth int, authorWidth, updatedAtWidth int, noColor bool) {
-	number := pri.numberWithLink(noColor)
-	var numberString string
-	if noColor {
-		numberString = number
-	} else {
-		if pri.IsDraft {
-			numberString = aurora.Gray(8, aurora.Magenta(fmt.Sprintf("#%d", pri.Number)).Bold().Hyperlink(pri.Url)).String()
-		} else {
-			numberString = number
-		}
+	numberString := pri.numberWithLink(noColor)
+	if !noColor && pri.IsDraft {
+		numberString = aurora.Gray(8, aurora.Magenta(fmt.Sprintf("#%d", pri.Number)).Bold().Hyperlink(pri.Url)).String()
 	}
 
 	numberPadding := numberWidth - len(fmt.Sprintf("#%d", pri.Number))
 
-	var login string
-	if noColor {
-		login = pri.Author
-	} else {
+	login := pri.Author
+	if !noColor {
 		if pri.IsDraft {
 			login = aurora.Gray(8, pri.Author).String()
 		} else {
