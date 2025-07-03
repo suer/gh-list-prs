@@ -151,7 +151,7 @@ func (pri *PullRequestItem) printLine(numberWidth int, authorWidth, updatedAtWid
 
 	statusSymbol := pri.checkStatusSymbol(noColor)
 
-	fmt.Printf("%s%-*s%-*s%-*s%s %s\n", numberString, numberPadding+1, "", authorWidth+1, login, updatedAtWidth+1, updatedAt, title, statusSymbol)
+	fmt.Printf("%s%-*s%-*s %-*s %s %s\n", numberString, numberPadding+1, "", authorWidth, login, updatedAtWidth, updatedAt, title, statusSymbol)
 }
 
 func (ri *RepositoryItem) printList(opts *Options) {
