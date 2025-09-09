@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/spf13/cobra"
 )
@@ -46,17 +47,35 @@ func rootCmd() *cobra.Command {
 }
 
 func run(orgs []string, opts *Options) error {
+	var wg sync.WaitGroup
+	var mu sync.Mutex
 	var allRepositories []RepositoryItem
+	var firstError error
 
 	for _, org := range orgs {
-		queryString := formatQueryString(org, opts)
+		wg.Add(1)
+		go func(org string) {
+			defer wg.Done()
+			
+			queryString := formatQueryString(org, opts)
+			repositories, err := fetchPullRequests(queryString, opts.Limit)
+			
+			mu.Lock()
+			defer mu.Unlock()
+			
+			if err != nil && firstError == nil {
+				firstError = err
+				return
+			}
+			
+			allRepositories = append(allRepositories, repositories...)
+		}(org)
+	}
 
-		repositories, err := fetchPullRequests(queryString, opts.Limit)
-		if err != nil {
-			return err
-		}
+	wg.Wait()
 
-		allRepositories = append(allRepositories, repositories...)
+	if firstError != nil {
+		return firstError
 	}
 
 	if opts.Interactive {
