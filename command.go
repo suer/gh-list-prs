@@ -20,18 +20,18 @@ type Options struct {
 func rootCmd() *cobra.Command {
 	opts := &Options{Excludes: &[]string{}, AdditionalQueries: &[]string{}}
 	cmd := &cobra.Command{
-		Use:           "gh list-prs <org>",
-		Short:         "List PRs for an org",
-		Args:          cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+		Use:           "gh list-prs <org> [<org>...]",
+		Short:         "List PRs for one or more orgs",
+		Args:          cobra.MatchAll(cobra.MinimumNArgs(1), cobra.OnlyValidArgs),
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			org := args[0]
+			orgs := args
 
 			if opts.Limit <= 0 {
 				return errors.New("invalid limit")
 			}
 
-			return run(org, opts)
+			return run(orgs, opts)
 		},
 	}
 
@@ -45,18 +45,24 @@ func rootCmd() *cobra.Command {
 	return cmd
 }
 
-func run(org string, opts *Options) error {
-	queryString := formatQueryString(org, opts)
+func run(orgs []string, opts *Options) error {
+	var allRepositories []RepositoryItem
 
-	repositories, err := fetchPullRequests(queryString, opts.Limit)
-	if err != nil {
-		return err
+	for _, org := range orgs {
+		queryString := formatQueryString(org, opts)
+
+		repositories, err := fetchPullRequests(queryString, opts.Limit)
+		if err != nil {
+			return err
+		}
+
+		allRepositories = append(allRepositories, repositories...)
 	}
 
 	if opts.Interactive {
-		printResultInteractive(org, repositories)
+		printResultInteractive(orgs, allRepositories)
 	} else {
-		printResult(repositories, opts)
+		printResult(allRepositories, opts)
 	}
 
 	return nil

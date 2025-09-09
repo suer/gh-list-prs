@@ -63,7 +63,7 @@ func newListKeyMap() *listKeyMap {
 	}
 }
 
-func printResultInteractive(org string, repositories []RepositoryItem) error {
+func printResultInteractive(orgs []string, repositories []RepositoryItem) error {
 	items := []list.Item{}
 	for _, repo := range repositories {
 		for _, pr := range repo.PullRequestItems {
@@ -84,7 +84,11 @@ func printResultInteractive(org string, repositories []RepositoryItem) error {
 		}
 	}
 	m := model{list: groceryList, keys: listKeys}
-	m.list.Title = fmt.Sprintf("PRs in %s", org)
+	if len(orgs) == 1 {
+		m.list.Title = fmt.Sprintf("PRs in %s", orgs[0])
+	} else {
+		m.list.Title = fmt.Sprintf("PRs in %d orgs", len(orgs))
+	}
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
 	if _, err := p.Run(); err != nil {
