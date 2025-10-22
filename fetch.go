@@ -30,7 +30,7 @@ type PullRequest struct {
 		Login string
 	}
 	Repository struct {
-		Name string
+		NameWithOwner string
 	}
 	Commits Commits `graphql:"commits(last: 1)"`
 }
@@ -48,7 +48,7 @@ func (pr *PullRequest) toPullRequestItem() PullRequestItem {
 		UpdatedAt:      pr.UpdatedAt,
 		IsDraft:        pr.IsDraft,
 		Url:            pr.Url,
-		RepositoryName: pr.Repository.Name,
+		RepositoryName: pr.Repository.NameWithOwner,
 		CheckStatus:    checkStatus,
 	}
 }
@@ -210,12 +210,12 @@ func fetchPullRequests(queryString string, limit int) ([]RepositoryItem, error) 
 	repoMap := map[string]RepositoryItem{}
 	for _, node := range query.Search.Nodes {
 		pr := node.PullRequest
-		if _, ok := repoMap[pr.Repository.Name]; !ok {
-			repoMap[pr.Repository.Name] = RepositoryItem{Name: pr.Repository.Name, PullRequestItems: []PullRequestItem{}}
+		if _, ok := repoMap[pr.Repository.NameWithOwner]; !ok {
+			repoMap[pr.Repository.NameWithOwner] = RepositoryItem{Name: pr.Repository.NameWithOwner, PullRequestItems: []PullRequestItem{}}
 		}
-		pullRequestItems := append(repoMap[pr.Repository.Name].PullRequestItems, pr.toPullRequestItem())
-		repositoryItem := RepositoryItem{Name: pr.Repository.Name, PullRequestItems: pullRequestItems}
-		repoMap[pr.Repository.Name] = repositoryItem
+		pullRequestItems := append(repoMap[pr.Repository.NameWithOwner].PullRequestItems, pr.toPullRequestItem())
+		repositoryItem := RepositoryItem{Name: pr.Repository.NameWithOwner, PullRequestItems: pullRequestItems}
+		repoMap[pr.Repository.NameWithOwner] = repositoryItem
 	}
 
 	// sort pull requests in each repositories
