@@ -161,7 +161,12 @@ func (ri *RepositoryItem) printList(opts *Options) {
 		}
 	}
 
-	fmt.Printf("# %s\n", ri.Name)
+	repoName := ri.Name
+	if !opts.NoColor {
+		repoLink := fmt.Sprintf("https://github.com/%s", ri.Name)
+		repoName = aurora.Hyperlink(ri.Name, repoLink).String()
+	}
+	fmt.Printf("# %s\n", repoName)
 	prs := ri.PullRequestItems
 	sort.Slice(prs, func(i, j int) bool {
 		return prs[i].Number > prs[j].Number
