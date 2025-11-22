@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/cli/go-gh/v2/pkg/api"
@@ -180,7 +181,11 @@ func (ri *RepositoryItem) printList(opts *Options) {
 func formatQueryString(org string, opts *Options) string {
 	queryString := fmt.Sprintf("is:open is:pr archived:false org:%s", org)
 	for _, exclude := range *opts.Excludes {
-		queryString += fmt.Sprintf(" -repo:%s/%s", org, exclude)
+		if strings.Contains(exclude, "/") {
+			queryString += fmt.Sprintf(" -repo:%s", exclude)
+		} else {
+			queryString += fmt.Sprintf(" -repo:%s/%s", org, exclude)
+		}
 	}
 	if opts.Author != "" {
 		queryString += fmt.Sprintf(" author:%s", opts.Author)
