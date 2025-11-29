@@ -8,7 +8,6 @@ import (
 
 	"github.com/cli/go-gh/v2/pkg/api"
 	graphql "github.com/cli/shurcooL-graphql"
-	"github.com/logrusorgru/aurora/v4"
 )
 
 type Commits struct {
@@ -80,73 +79,20 @@ type PullRequestItem struct {
 	CheckStatus    string
 }
 
-func (pri *PullRequestItem) numberWithLink(noColor bool) string {
-	if noColor {
-		return fmt.Sprintf("#%d", pri.Number)
-	}
-	return aurora.Magenta(fmt.Sprintf("#%d", pri.Number)).Bold().Hyperlink(pri.Url).String()
-}
-
-func (pri *PullRequestItem) checkStatusSymbol(noColor bool) string {
-	if noColor {
-		if pri.CheckStatus == "SUCCESS" {
-			return "✔"
-		} else if pri.CheckStatus == "FAILURE" {
-			return "✘"
-		} else if pri.CheckStatus == "PENDING" {
-			return "⏳"
-		} else {
-			return ""
-		}
-	}
-
-	if pri.CheckStatus == "SUCCESS" {
-		return aurora.Green("✔").String()
-	} else if pri.CheckStatus == "FAILURE" {
-		return aurora.Red("✘").String()
-	} else if pri.CheckStatus == "PENDING" {
-		return "⏳"
-	} else {
-		return ""
-	}
-}
-
-func (pri *PullRequestItem) printLine(numberWidth int, authorWidth, updatedAtWidth int, noColor bool) {
-	numberString := pri.numberWithLink(noColor)
-	if !noColor && pri.IsDraft {
-		numberString = aurora.Gray(8, aurora.Magenta(fmt.Sprintf("#%d", pri.Number)).Bold().Hyperlink(pri.Url)).String()
-	}
-
+func (pri *PullRequestItem) printLine(numberWidth int, authorWidth, updatedAtWidth int, formatter Formatter) {
+	numberString := formatter.FormatPRNumber(pri)
 	numberPadding := numberWidth - len(fmt.Sprintf("#%d", pri.Number))
-
-	login := pri.Author
-	if !noColor {
-		if pri.IsDraft {
-			login = aurora.Gray(8, pri.Author).String()
-		} else {
-			login = aurora.Green(pri.Author).String()
-		}
-	}
-
-	updatedAt := pri.UpdatedAt.In(time.Local).Format("2006-01-02")
-	if !noColor && pri.IsDraft {
-		updatedAt = aurora.Gray(8, updatedAt).String()
-	}
-
-	title := pri.Title
-	if pri.IsDraft {
-		title = title + " (draft)"
-		if !noColor {
-			title = aurora.Gray(8, title).String()
-		}
-	}
-
-	statusSymbol := pri.checkStatusSymbol(noColor)
+	login := formatter.FormatAuthor(pri)
+	updatedAt := formatter.FormatUpdatedAt(pri)
+	title := formatter.FormatTitle(pri)
+	statusSymbol := formatter.FormatCheckStatus(pri)
 
 	fmt.Printf("%s%-*s%-*s %-*s %s %s\n", numberString, numberPadding+1, "", authorWidth, login, updatedAtWidth, updatedAt, title, statusSymbol)
 }
 
 func (ri *RepositoryItem) printList(opts *Options) {
+	formatter := NewFormatter(opts.NoColor)
+
 	numberWidth := 0
 	authorWidth := 0
 	updatedAtWidth := len("2006-01-02")
@@ -162,19 +108,14 @@ func (ri *RepositoryItem) printList(opts *Options) {
 		}
 	}
 
-	repoName := ri.Name
-	if !opts.NoColor {
-		repoLink := fmt.Sprintf("https://github.com/%s", ri.Name)
-		repoName = aurora.Hyperlink(ri.Name, repoLink).String()
-	}
-	fmt.Printf("# %s\n", repoName)
+	fmt.Printf("# %s\n", formatter.FormatRepositoryName(ri.Name))
 	prs := ri.PullRequestItems
 	sort.Slice(prs, func(i, j int) bool {
 		return prs[i].Number > prs[j].Number
 	})
 
 	for _, pr := range prs {
-		pr.printLine(numberWidth, authorWidth, updatedAtWidth, opts.NoColor)
+		pr.printLine(numberWidth, authorWidth, updatedAtWidth, formatter)
 	}
 }
 
