@@ -3,12 +3,14 @@ package main
 import (
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"sync"
 
 	"github.com/spf13/cobra"
 )
 
 type Options struct {
+	Version           bool
 	Limit             int
 	Excludes          *[]string
 	Author            string
@@ -21,9 +23,14 @@ type Options struct {
 func rootCmd() *cobra.Command {
 	opts := &Options{Excludes: &[]string{}, AdditionalQueries: &[]string{}}
 	cmd := &cobra.Command{
-		Use:           "gh list-prs <org> [<org>...]",
-		Short:         "List PRs for one or more orgs",
-		Args:          cobra.MatchAll(cobra.MinimumNArgs(1), cobra.OnlyValidArgs),
+		Use:   "gh list-prs <org> [<org>...]",
+		Short: "List PRs for one or more orgs",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if opts.Version {
+				return nil
+			}
+			return cobra.MatchAll(cobra.MinimumNArgs(1), cobra.OnlyValidArgs)(cmd, args)
+		},
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			orgs := args
@@ -36,6 +43,7 @@ func rootCmd() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().BoolVar(&opts.Version, "version", false, "show version")
 	cmd.Flags().StringArrayVarP(opts.Excludes, "exclude", "e", []string{}, "exclude repositories")
 	cmd.Flags().IntVarP(&opts.Limit, "limit", "l", 50, "Max number of search results in all repository")
 	cmd.Flags().StringVarP(&opts.Author, "author", "a", "", "Filter by author")
@@ -47,6 +55,15 @@ func rootCmd() *cobra.Command {
 }
 
 func run(orgs []string, opts *Options) error {
+	if opts.Version {
+		if info, ok := debug.ReadBuildInfo(); ok {
+			fmt.Println(info.Main.Version)
+			return nil
+		} else {
+			return errors.New("could not read build info")
+		}
+	}
+
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	var allRepositories []RepositoryItem
@@ -56,18 +73,18 @@ func run(orgs []string, opts *Options) error {
 		wg.Add(1)
 		go func(org string) {
 			defer wg.Done()
-			
+
 			queryString := formatQueryString(org, opts)
 			repositories, err := fetchPullRequests(queryString, opts.Limit)
-			
+
 			mu.Lock()
 			defer mu.Unlock()
-			
+
 			if err != nil && firstError == nil {
 				firstError = err
 				return
 			}
-			
+
 			allRepositories = append(allRepositories, repositories...)
 		}(org)
 	}
