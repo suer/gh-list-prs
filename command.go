@@ -64,35 +64,32 @@ func run(orgs []string, opts *Options) error {
 		}
 	}
 
+	type result struct {
+		repositories []RepositoryItem
+		err          error
+	}
+
+	results := make([]result, len(orgs))
 	var wg sync.WaitGroup
-	var mu sync.Mutex
-	var allRepositories []RepositoryItem
-	var firstError error
 
-	for _, org := range orgs {
+	for i, org := range orgs {
 		wg.Add(1)
-		go func(org string) {
+		go func(i int, org string) {
 			defer wg.Done()
-
 			queryString := formatQueryString(org, opts)
 			repositories, err := fetchPullRequests(queryString, opts.Limit)
-
-			mu.Lock()
-			defer mu.Unlock()
-
-			if err != nil && firstError == nil {
-				firstError = err
-				return
-			}
-
-			allRepositories = append(allRepositories, repositories...)
-		}(org)
+			results[i] = result{repositories: repositories, err: err}
+		}(i, org)
 	}
 
 	wg.Wait()
 
-	if firstError != nil {
-		return firstError
+	var allRepositories []RepositoryItem
+	for _, r := range results {
+		if r.err != nil {
+			return r.err
+		}
+		allRepositories = append(allRepositories, r.repositories...)
 	}
 
 	if opts.Interactive {
