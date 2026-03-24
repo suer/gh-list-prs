@@ -119,7 +119,7 @@ func fetchPullRequests(queryString string, limit int) ([]RepositoryItem, error) 
 	}
 
 	repoMap := map[string]RepositoryItem{}
-	for _, node := range query.Search.Nodes {
+	for _, node := range query.Nodes {
 		pr := node.PullRequest
 		if _, ok := repoMap[pr.Repository.NameWithOwner]; !ok {
 			repoMap[pr.Repository.NameWithOwner] = RepositoryItem{Name: pr.Repository.NameWithOwner, PullRequestItems: []PullRequestItem{}}

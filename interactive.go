@@ -37,7 +37,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if key.Matches(msg, m.keys.openWithBrowser) {
-			browser.OpenURL(m.list.SelectedItem().(listItem).pullRequestItem.Url)
+			_ = browser.OpenURL(m.list.SelectedItem().(listItem).pullRequestItem.Url)
 			return m, nil
 		}
 	case tea.WindowSizeMsg:
