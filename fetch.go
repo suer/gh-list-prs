@@ -29,7 +29,8 @@ type PullRequest struct {
 	Author    struct {
 		Login string
 	}
-	Repository struct {
+	ReviewDecision string
+	Repository     struct {
 		NameWithOwner string
 	}
 	Commits Commits `graphql:"commits(last: 1)"`
@@ -50,6 +51,7 @@ func (pr *PullRequest) toPullRequestItem() PullRequestItem {
 		Url:            pr.Url,
 		RepositoryName: pr.Repository.NameWithOwner,
 		CheckStatus:    checkStatus,
+		ReviewDecision: pr.ReviewDecision,
 	}
 }
 
@@ -77,6 +79,7 @@ type PullRequestItem struct {
 	Url            string
 	RepositoryName string
 	CheckStatus    string
+	ReviewDecision string
 }
 
 func formatQueryString(org string, opts *Options) string {

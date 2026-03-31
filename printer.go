@@ -12,8 +12,9 @@ func (pri *PullRequestItem) printLine(numberWidth int, authorWidth, updatedAtWid
 	updatedAt := formatter.FormatUpdatedAt(pri)
 	title := formatter.FormatTitle(pri)
 	statusSymbol := formatter.FormatCheckStatus(pri)
+	reviewDecision := formatter.FormatReviewDecision(pri)
 
-	fmt.Printf("%s%-*s%-*s %-*s %s %s\n", numberString, numberPadding+1, "", authorWidth, login, updatedAtWidth, updatedAt, title, statusSymbol)
+	fmt.Printf("%s%-*s%-*s %-*s %s %s %s\n", numberString, numberPadding+1, "", authorWidth, login, updatedAtWidth, updatedAt, title, statusSymbol, reviewDecision)
 }
 
 func (ri *RepositoryItem) printList(opts *Options) {

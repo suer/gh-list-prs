@@ -15,7 +15,7 @@ type listItem struct {
 
 func (li listItem) Title() string {
 	formatter := NewFormatter(false)
-	return fmt.Sprintf("%s #%d @%s %s", li.pullRequestItem.RepositoryName, li.pullRequestItem.Number, li.pullRequestItem.Author, formatter.FormatCheckStatus(&li.pullRequestItem))
+	return fmt.Sprintf("%s #%d @%s %s %s", li.pullRequestItem.RepositoryName, li.pullRequestItem.Number, li.pullRequestItem.Author, formatter.FormatCheckStatus(&li.pullRequestItem), formatter.FormatReviewDecision(&li.pullRequestItem))
 }
 func (li listItem) Description() string { return li.pullRequestItem.Title }
 func (li listItem) FilterValue() string {
