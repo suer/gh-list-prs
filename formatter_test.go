@@ -200,6 +200,46 @@ func TestColorFormatterFormatCheckStatus(t *testing.T) {
 	}
 }
 
+func TestColorFormatterFormatReviewDecision(t *testing.T) {
+	cf := &ColorFormatter{}
+	tests := []struct {
+		name           string
+		reviewDecision string
+		wantSymbol     string
+		wantEmpty      bool
+	}{
+		{
+			name:           "approved",
+			reviewDecision: "APPROVED",
+			wantSymbol:     "✓",
+		},
+		{
+			name:           "review required",
+			reviewDecision: "REVIEW_REQUIRED",
+			wantEmpty:      true,
+		},
+		{
+			name:           "empty",
+			reviewDecision: "",
+			wantEmpty:      true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pri := &PullRequestItem{ReviewDecision: tt.reviewDecision}
+			result := cf.FormatReviewDecision(pri)
+			if tt.wantEmpty {
+				if result != "" {
+					t.Errorf("FormatReviewDecision() = %q, want empty string", result)
+				}
+			} else if !strings.Contains(result, tt.wantSymbol) {
+				t.Errorf("FormatReviewDecision() = %q, want to contain %q", result, tt.wantSymbol)
+			}
+		})
+	}
+}
+
 func TestColorFormatterFormatRepositoryName(t *testing.T) {
 	cf := &ColorFormatter{}
 	tests := []struct {
@@ -333,6 +373,41 @@ func TestNoColorFormatterFormatCheckStatus(t *testing.T) {
 
 			if result != tt.want {
 				t.Errorf("FormatCheckStatus() = %q, want %q", result, tt.want)
+			}
+		})
+	}
+}
+
+func TestNoColorFormatterFormatReviewDecision(t *testing.T) {
+	ncf := &NoColorFormatter{}
+	tests := []struct {
+		name           string
+		reviewDecision string
+		want           string
+	}{
+		{
+			name:           "approved",
+			reviewDecision: "APPROVED",
+			want:           "✓",
+		},
+		{
+			name:           "review required",
+			reviewDecision: "REVIEW_REQUIRED",
+			want:           "",
+		},
+		{
+			name:           "empty",
+			reviewDecision: "",
+			want:           "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pri := &PullRequestItem{ReviewDecision: tt.reviewDecision}
+			result := ncf.FormatReviewDecision(pri)
+			if result != tt.want {
+				t.Errorf("FormatReviewDecision() = %q, want %q", result, tt.want)
 			}
 		})
 	}

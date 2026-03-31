@@ -13,6 +13,7 @@ type Formatter interface {
 	FormatUpdatedAt(pri *PullRequestItem) string
 	FormatTitle(pri *PullRequestItem) string
 	FormatCheckStatus(pri *PullRequestItem) string
+	FormatReviewDecision(pri *PullRequestItem) string
 	FormatRepositoryName(name string) string
 }
 
@@ -63,6 +64,13 @@ func (cf *ColorFormatter) FormatCheckStatus(pri *PullRequestItem) string {
 	}
 }
 
+func (cf *ColorFormatter) FormatReviewDecision(pri *PullRequestItem) string {
+	if pri.ReviewDecision == "APPROVED" {
+		return aurora.Magenta("✓").String()
+	}
+	return ""
+}
+
 func (cf *ColorFormatter) FormatRepositoryName(name string) string {
 	repoLink := fmt.Sprintf("https://github.com/%s", name)
 	return aurora.Hyperlink(name, repoLink).String()
@@ -101,6 +109,13 @@ func (ncf *NoColorFormatter) FormatCheckStatus(pri *PullRequestItem) string {
 	default:
 		return ""
 	}
+}
+
+func (ncf *NoColorFormatter) FormatReviewDecision(pri *PullRequestItem) string {
+	if pri.ReviewDecision == "APPROVED" {
+		return "✓"
+	}
+	return ""
 }
 
 func (ncf *NoColorFormatter) FormatRepositoryName(name string) string {
