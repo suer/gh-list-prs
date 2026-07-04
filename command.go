@@ -77,6 +77,9 @@ func run(orgs []string, opts *Options) error {
 		go func(i int, org string) {
 			defer wg.Done()
 			queryString := formatQueryString(org, opts)
+			if opts.Verbose {
+				fmt.Printf("query: %s\n", queryString)
+			}
 			repositories, err := fetchPullRequests(queryString, opts.Limit)
 			results[i] = result{repositories: repositories, err: err}
 		}(i, org)
