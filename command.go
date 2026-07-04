@@ -12,16 +12,16 @@ import (
 type Options struct {
 	Version           bool
 	Limit             int
-	Excludes          *[]string
+	Excludes          []string
 	Author            string
-	AdditionalQueries *[]string
+	AdditionalQueries []string
 	Verbose           bool
 	Interactive       bool
 	NoColor           bool
 }
 
 func rootCmd() *cobra.Command {
-	opts := &Options{Excludes: &[]string{}, AdditionalQueries: &[]string{}}
+	opts := &Options{}
 	cmd := &cobra.Command{
 		Use:   "gh list-prs <org> [<org>...]",
 		Short: "List PRs for one or more orgs",
@@ -44,10 +44,10 @@ func rootCmd() *cobra.Command {
 	}
 
 	cmd.Flags().BoolVar(&opts.Version, "version", false, "show version")
-	cmd.Flags().StringArrayVarP(opts.Excludes, "exclude", "e", []string{}, "exclude repositories")
+	cmd.Flags().StringArrayVarP(&opts.Excludes, "exclude", "e", []string{}, "exclude repositories")
 	cmd.Flags().IntVarP(&opts.Limit, "limit", "l", 50, "Max number of search results in all repository")
 	cmd.Flags().StringVarP(&opts.Author, "author", "a", "", "Filter by author")
-	cmd.Flags().StringArrayVarP(opts.AdditionalQueries, "additional-query", "q", []string{}, "additional query")
+	cmd.Flags().StringArrayVarP(&opts.AdditionalQueries, "additional-query", "q", []string{}, "additional query")
 	cmd.Flags().BoolVarP(&opts.Verbose, "verbose", "v", false, "verbose output")
 	cmd.Flags().BoolVarP(&opts.Interactive, "interactive", "i", false, "interactive mode")
 	cmd.Flags().BoolVar(&opts.NoColor, "no-color", false, "disable color output and show plain URLs")
