@@ -61,7 +61,7 @@ type Search struct {
 	}
 }
 
-type query struct {
+type searchQuery struct {
 	Search `graphql:"search(first: $first, type: ISSUE, query: $query)"`
 }
 
@@ -107,7 +107,7 @@ func fetchPullRequests(queryString string, limit int) ([]RepositoryItem, error) 
 		return []RepositoryItem{}, err
 	}
 
-	var query = query{}
+	var query = searchQuery{}
 	variables := map[string]interface{}{
 		"first": graphql.Int(limit),
 		"query": graphql.String(queryString),
