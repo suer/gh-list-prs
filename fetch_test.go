@@ -17,10 +17,10 @@ func TestFormatQueryString(t *testing.T) {
 			name: "basic query",
 			org:  "myorg",
 			opts: &Options{
-				Excludes:           &[]string{},
-				AdditionalQueries:  &[]string{},
-				Author:             "",
-				Verbose:            false,
+				Excludes:          []string{},
+				AdditionalQueries: []string{},
+				Author:            "",
+				Verbose:           false,
 			},
 			wantContains: []string{
 				"is:open",
@@ -34,8 +34,8 @@ func TestFormatQueryString(t *testing.T) {
 			name: "with excludes",
 			org:  "myorg",
 			opts: &Options{
-				Excludes:          &[]string{"repo1", "org2/repo2"},
-				AdditionalQueries: &[]string{},
+				Excludes:          []string{"repo1", "org2/repo2"},
+				AdditionalQueries: []string{},
 				Author:            "",
 				Verbose:           false,
 			},
@@ -50,8 +50,8 @@ func TestFormatQueryString(t *testing.T) {
 			name: "with author",
 			org:  "myorg",
 			opts: &Options{
-				Excludes:          &[]string{},
-				AdditionalQueries: &[]string{},
+				Excludes:          []string{},
+				AdditionalQueries: []string{},
 				Author:            "alice",
 				Verbose:           false,
 			},
@@ -65,8 +65,8 @@ func TestFormatQueryString(t *testing.T) {
 			name: "with additional queries",
 			org:  "myorg",
 			opts: &Options{
-				Excludes:          &[]string{},
-				AdditionalQueries: &[]string{"label:bug", "state:draft"},
+				Excludes:          []string{},
+				AdditionalQueries: []string{"label:bug", "state:draft"},
 				Author:            "",
 				Verbose:           false,
 			},
@@ -81,8 +81,8 @@ func TestFormatQueryString(t *testing.T) {
 			name: "with all options",
 			org:  "myorg",
 			opts: &Options{
-				Excludes:          &[]string{"repo1", "org2/repo2"},
-				AdditionalQueries: &[]string{"label:bug"},
+				Excludes:          []string{"repo1", "org2/repo2"},
+				AdditionalQueries: []string{"label:bug"},
 				Author:            "bob",
 				Verbose:           false,
 			},
@@ -128,12 +128,12 @@ func TestToPullRequestItem(t *testing.T) {
 		{
 			name: "PR with status check",
 			pr: &PullRequest{
-				Number: 123,
-				Title:  "Fix bug",
-				Url:    "https://github.com/test/repo/pull/123",
-				UpdatedAt: time.Date(2024, 11, 30, 12, 0, 0, 0, time.UTC),
-				IsDraft: false,
-				Author: struct{ Login string }{Login: "alice"},
+				Number:     123,
+				Title:      "Fix bug",
+				Url:        "https://github.com/test/repo/pull/123",
+				UpdatedAt:  time.Date(2024, 11, 30, 12, 0, 0, 0, time.UTC),
+				IsDraft:    false,
+				Author:     struct{ Login string }{Login: "alice"},
 				Repository: struct{ NameWithOwner string }{NameWithOwner: "test/repo"},
 				Commits: Commits{
 					Nodes: []struct {
@@ -173,12 +173,12 @@ func TestToPullRequestItem(t *testing.T) {
 		{
 			name: "PR without status check",
 			pr: &PullRequest{
-				Number: 456,
-				Title:  "Add feature",
-				Url:    "https://github.com/test/repo/pull/456",
-				UpdatedAt: time.Date(2024, 11, 30, 13, 0, 0, 0, time.UTC),
-				IsDraft: true,
-				Author: struct{ Login string }{Login: "bob"},
+				Number:     456,
+				Title:      "Add feature",
+				Url:        "https://github.com/test/repo/pull/456",
+				UpdatedAt:  time.Date(2024, 11, 30, 13, 0, 0, 0, time.UTC),
+				IsDraft:    true,
+				Author:     struct{ Login string }{Login: "bob"},
 				Repository: struct{ NameWithOwner string }{NameWithOwner: "test/repo"},
 				Commits: Commits{
 					Nodes: []struct {
@@ -204,12 +204,12 @@ func TestToPullRequestItem(t *testing.T) {
 		{
 			name: "PR with failure check status",
 			pr: &PullRequest{
-				Number: 789,
-				Title:  "WIP",
-				Url:    "https://github.com/test/repo/pull/789",
-				UpdatedAt: time.Date(2024, 11, 30, 14, 0, 0, 0, time.UTC),
-				IsDraft: false,
-				Author: struct{ Login string }{Login: "charlie"},
+				Number:     789,
+				Title:      "WIP",
+				Url:        "https://github.com/test/repo/pull/789",
+				UpdatedAt:  time.Date(2024, 11, 30, 14, 0, 0, 0, time.UTC),
+				IsDraft:    false,
+				Author:     struct{ Login string }{Login: "charlie"},
 				Repository: struct{ NameWithOwner string }{NameWithOwner: "test/repo"},
 				Commits: Commits{
 					Nodes: []struct {

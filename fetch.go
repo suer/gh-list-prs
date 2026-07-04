@@ -84,7 +84,7 @@ type PullRequestItem struct {
 
 func formatQueryString(org string, opts *Options) string {
 	queryString := fmt.Sprintf("is:open is:pr archived:false org:%s", org)
-	for _, exclude := range *opts.Excludes {
+	for _, exclude := range opts.Excludes {
 		if strings.Contains(exclude, "/") {
 			queryString += fmt.Sprintf(" -repo:%s", exclude)
 		} else {
@@ -94,7 +94,7 @@ func formatQueryString(org string, opts *Options) string {
 	if opts.Author != "" {
 		queryString += fmt.Sprintf(" author:%s", opts.Author)
 	}
-	for _, query := range *opts.AdditionalQueries {
+	for _, query := range opts.AdditionalQueries {
 		queryString += fmt.Sprintf(" %s", query)
 	}
 
