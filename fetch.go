@@ -98,10 +98,6 @@ func formatQueryString(org string, opts *Options) string {
 		queryString += fmt.Sprintf(" %s", query)
 	}
 
-	if opts.Verbose {
-		fmt.Printf("query: %s\n", queryString)
-	}
-
 	return queryString
 }
 
