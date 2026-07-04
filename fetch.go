@@ -117,26 +117,33 @@ func fetchPullRequests(queryString string, limit int) ([]RepositoryItem, error) 
 		return []RepositoryItem{}, err
 	}
 
-	repoMap := map[string]RepositoryItem{}
+	pullRequests := make([]PullRequest, 0, len(query.Nodes))
 	for _, node := range query.Nodes {
-		pr := node.PullRequest
-		if _, ok := repoMap[pr.Repository.NameWithOwner]; !ok {
-			repoMap[pr.Repository.NameWithOwner] = RepositoryItem{Name: pr.Repository.NameWithOwner, PullRequestItems: []PullRequestItem{}}
-		}
-		pullRequestItems := append(repoMap[pr.Repository.NameWithOwner].PullRequestItems, pr.toPullRequestItem())
-		repositoryItem := RepositoryItem{Name: pr.Repository.NameWithOwner, PullRequestItems: pullRequestItems}
-		repoMap[pr.Repository.NameWithOwner] = repositoryItem
+		pullRequests = append(pullRequests, node.PullRequest)
 	}
 
-	// sort pull requests in each repositories
-	for _, name := range repoMap {
-		prs := name.PullRequestItems
-		sort.Slice(prs, func(i, j int) bool {
-			return prs[i].Number > prs[j].Number
+	return groupAndSortPullRequests(pullRequests), nil
+}
+
+// groupAndSortPullRequests groups pull requests by repository, sorts pull
+// requests within each repository by Number descending, and sorts
+// repositories by name.
+func groupAndSortPullRequests(pullRequests []PullRequest) []RepositoryItem {
+	repoMap := map[string]RepositoryItem{}
+	for _, pr := range pullRequests {
+		name := pr.Repository.NameWithOwner
+		repo := repoMap[name]
+		repo.Name = name
+		repo.PullRequestItems = append(repo.PullRequestItems, pr.toPullRequestItem())
+		repoMap[name] = repo
+	}
+
+	for _, repo := range repoMap {
+		sort.Slice(repo.PullRequestItems, func(i, j int) bool {
+			return repo.PullRequestItems[i].Number > repo.PullRequestItems[j].Number
 		})
 	}
 
-	// get sorted repositories
 	repoNames := make([]string, 0, len(repoMap))
 	for name := range repoMap {
 		repoNames = append(repoNames, name)
@@ -148,5 +155,5 @@ func fetchPullRequests(queryString string, limit int) ([]RepositoryItem, error) 
 		repositories = append(repositories, repoMap[name])
 	}
 
-	return repositories, nil
+	return repositories
 }
