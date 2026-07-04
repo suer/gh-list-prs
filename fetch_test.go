@@ -280,6 +280,48 @@ func TestToPullRequestItem(t *testing.T) {
 	}
 }
 
+func TestGroupAndSortPullRequests(t *testing.T) {
+	newPR := func(repo string, number int) PullRequest {
+		pr := PullRequest{Number: number}
+		pr.Repository.NameWithOwner = repo
+		return pr
+	}
+
+	pullRequests := []PullRequest{
+		newPR("org/b", 1),
+		newPR("org/a", 3),
+		newPR("org/a", 1),
+		newPR("org/a", 2),
+	}
+
+	repositories := groupAndSortPullRequests(pullRequests)
+
+	if len(repositories) != 2 {
+		t.Fatalf("len(repositories) = %d, want 2", len(repositories))
+	}
+
+	if repositories[0].Name != "org/a" {
+		t.Errorf("repositories[0].Name = %q, want %q", repositories[0].Name, "org/a")
+	}
+	if repositories[1].Name != "org/b" {
+		t.Errorf("repositories[1].Name = %q, want %q", repositories[1].Name, "org/b")
+	}
+
+	gotNumbers := make([]int, 0, len(repositories[0].PullRequestItems))
+	for _, pr := range repositories[0].PullRequestItems {
+		gotNumbers = append(gotNumbers, pr.Number)
+	}
+	wantNumbers := []int{3, 2, 1}
+	if len(gotNumbers) != len(wantNumbers) {
+		t.Fatalf("numbers = %v, want %v", gotNumbers, wantNumbers)
+	}
+	for i := range wantNumbers {
+		if gotNumbers[i] != wantNumbers[i] {
+			t.Errorf("numbers = %v, want %v", gotNumbers, wantNumbers)
+		}
+	}
+}
+
 func contains(s, substr string) bool {
 	for i := 0; i <= len(s)-len(substr); i++ {
 		if s[i:i+len(substr)] == substr {
