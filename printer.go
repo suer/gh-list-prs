@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"sort"
 )
 
 func (pri *PullRequestItem) printLine(numberWidth int, authorWidth, updatedAtWidth int, formatter Formatter) {
@@ -36,12 +35,8 @@ func (ri *RepositoryItem) printList(opts *Options) {
 	}
 
 	fmt.Printf("# %s\n", formatter.FormatRepositoryName(ri.Name))
-	prs := ri.PullRequestItems
-	sort.Slice(prs, func(i, j int) bool {
-		return prs[i].Number > prs[j].Number
-	})
 
-	for _, pr := range prs {
+	for _, pr := range ri.PullRequestItems {
 		pr.printLine(numberWidth, authorWidth, updatedAtWidth, formatter)
 	}
 }

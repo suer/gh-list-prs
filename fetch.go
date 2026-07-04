@@ -136,7 +136,7 @@ func fetchPullRequests(queryString string, limit int) ([]RepositoryItem, error) 
 	for _, name := range repoMap {
 		prs := name.PullRequestItems
 		sort.Slice(prs, func(i, j int) bool {
-			return prs[i].Number < prs[j].Number
+			return prs[i].Number > prs[j].Number
 		})
 	}
 
