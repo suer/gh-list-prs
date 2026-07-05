@@ -129,19 +129,10 @@ func fetchPullRequests(queryString string, limit int) ([]RepositoryItem, error) 
 // requests within each repository by Number descending, and sorts
 // repositories by name.
 func groupAndSortPullRequests(pullRequests []PullRequest) []RepositoryItem {
-	repoMap := map[string]RepositoryItem{}
+	repoMap := map[string][]PullRequestItem{}
 	for _, pr := range pullRequests {
 		name := pr.Repository.NameWithOwner
-		repo := repoMap[name]
-		repo.Name = name
-		repo.PullRequestItems = append(repo.PullRequestItems, pr.toPullRequestItem())
-		repoMap[name] = repo
-	}
-
-	for _, repo := range repoMap {
-		sort.Slice(repo.PullRequestItems, func(i, j int) bool {
-			return repo.PullRequestItems[i].Number > repo.PullRequestItems[j].Number
-		})
+		repoMap[name] = append(repoMap[name], pr.toPullRequestItem())
 	}
 
 	repoNames := make([]string, 0, len(repoMap))
@@ -152,7 +143,11 @@ func groupAndSortPullRequests(pullRequests []PullRequest) []RepositoryItem {
 
 	repositories := make([]RepositoryItem, 0, len(repoMap))
 	for _, name := range repoNames {
-		repositories = append(repositories, repoMap[name])
+		items := repoMap[name]
+		sort.Slice(items, func(i, j int) bool {
+			return items[i].Number > items[j].Number
+		})
+		repositories = append(repositories, RepositoryItem{Name: name, PullRequestItems: items})
 	}
 
 	return repositories
