@@ -172,7 +172,7 @@ func TestToPullRequestItem(t *testing.T) {
 			},
 		},
 		{
-			name: "PR without status check",
+			name: "PR without commit info",
 			pr: &PullRequest{
 				Number:     456,
 				Title:      "Add feature",
@@ -199,7 +199,7 @@ func TestToPullRequestItem(t *testing.T) {
 				IsDraft:        true,
 				Url:            "https://github.com/test/repo/pull/456",
 				RepositoryName: "test/repo",
-				CheckStatus:    "PENDING",
+				CheckStatus:    checkStatusUnknown,
 			},
 		},
 		{
