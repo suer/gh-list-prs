@@ -113,7 +113,7 @@ func formatQueryString(org string, opts *Options) string {
 func fetchPullRequests(queryString string, limit int) ([]RepositoryItem, error) {
 	client, err := api.DefaultGraphQLClient()
 	if err != nil {
-		return []RepositoryItem{}, err
+		return nil, err
 	}
 
 	var query = searchQuery{}
@@ -123,7 +123,7 @@ func fetchPullRequests(queryString string, limit int) ([]RepositoryItem, error) 
 	}
 	err = client.Query("PullRequests", &query, variables)
 	if err != nil {
-		return []RepositoryItem{}, err
+		return nil, err
 	}
 
 	pullRequests := make([]PullRequest, 0, len(query.Nodes))
