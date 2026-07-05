@@ -96,7 +96,7 @@ func run(orgs []string, opts *Options) error {
 	}
 
 	if opts.Interactive {
-		if err := printResultInteractive(orgs, allRepositories); err != nil {
+		if err := printResultInteractive(orgs, allRepositories, opts.NoColor); err != nil {
 			return err
 		}
 	} else {
