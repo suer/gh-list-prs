@@ -76,18 +76,18 @@ func printResultInteractive(orgs []string, repositories []RepositoryItem, noColo
 	}
 
 	listKeys := newListKeyMap()
-	groceryList := list.New(items, list.NewDefaultDelegate(), 0, 0)
-	groceryList.AdditionalFullHelpKeys = func() []key.Binding {
+	prList := list.New(items, list.NewDefaultDelegate(), 0, 0)
+	prList.AdditionalFullHelpKeys = func() []key.Binding {
 		return []key.Binding{
 			listKeys.openWithBrowser,
 		}
 	}
-	groceryList.AdditionalShortHelpKeys = func() []key.Binding {
+	prList.AdditionalShortHelpKeys = func() []key.Binding {
 		return []key.Binding{
 			listKeys.openWithBrowser,
 		}
 	}
-	m := model{list: groceryList, keys: listKeys}
+	m := model{list: prList, keys: listKeys}
 	if len(orgs) == 1 {
 		m.list.Title = fmt.Sprintf("PRs in %s", orgs[0])
 	} else {
