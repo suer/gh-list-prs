@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"testing"
 	"time"
 )
@@ -105,13 +106,13 @@ func TestFormatQueryString(t *testing.T) {
 			result := formatQueryString(tt.org, tt.opts)
 
 			for _, want := range tt.wantContains {
-				if !contains(result, want) {
+				if !strings.Contains(result, want) {
 					t.Errorf("formatQueryString() = %q, want to contain %q", result, want)
 				}
 			}
 
 			for _, notWant := range tt.wantNotContain {
-				if contains(result, notWant) {
+				if strings.Contains(result, notWant) {
 					t.Errorf("formatQueryString() = %q, should not contain %q", result, notWant)
 				}
 			}
@@ -320,13 +321,4 @@ func TestGroupAndSortPullRequests(t *testing.T) {
 			t.Errorf("numbers = %v, want %v", gotNumbers, wantNumbers)
 		}
 	}
-}
-
-func contains(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
 }
