@@ -11,11 +11,11 @@ import (
 
 type listItem struct {
 	pullRequestItem PullRequestItem
+	formatter       Formatter
 }
 
 func (li listItem) Title() string {
-	formatter := NewFormatter(false)
-	return fmt.Sprintf("%s #%d @%s %s %s", li.pullRequestItem.RepositoryName, li.pullRequestItem.Number, li.pullRequestItem.Author, formatter.FormatCheckStatus(&li.pullRequestItem), formatter.FormatReviewDecision(&li.pullRequestItem))
+	return fmt.Sprintf("%s #%d @%s %s %s", li.pullRequestItem.RepositoryName, li.pullRequestItem.Number, li.pullRequestItem.Author, li.formatter.FormatCheckStatus(&li.pullRequestItem), li.formatter.FormatReviewDecision(&li.pullRequestItem))
 }
 func (li listItem) Description() string { return li.pullRequestItem.Title }
 func (li listItem) FilterValue() string {
@@ -66,11 +66,12 @@ func newListKeyMap() *listKeyMap {
 	}
 }
 
-func printResultInteractive(orgs []string, repositories []RepositoryItem) error {
+func printResultInteractive(orgs []string, repositories []RepositoryItem, noColor bool) error {
+	formatter := NewFormatter(noColor)
 	items := []list.Item{}
 	for _, repo := range repositories {
 		for _, pr := range repo.PullRequestItems {
-			items = append(items, listItem{pullRequestItem: pr})
+			items = append(items, listItem{pullRequestItem: pr, formatter: formatter})
 		}
 	}
 
