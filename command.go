@@ -10,7 +10,6 @@ import (
 )
 
 type Options struct {
-	Version           bool
 	Limit             int
 	Excludes          []string
 	Author            string
@@ -20,17 +19,20 @@ type Options struct {
 	NoColor           bool
 }
 
+func buildVersion() string {
+	if info, ok := debug.ReadBuildInfo(); ok {
+		return info.Main.Version
+	}
+	return "unknown"
+}
+
 func rootCmd() *cobra.Command {
 	opts := &Options{}
 	cmd := &cobra.Command{
-		Use:   "gh list-prs <org> [<org>...]",
-		Short: "List PRs for one or more orgs",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if opts.Version {
-				return nil
-			}
-			return cobra.MatchAll(cobra.MinimumNArgs(1), cobra.OnlyValidArgs)(cmd, args)
-		},
+		Use:           "gh list-prs <org> [<org>...]",
+		Short:         "List PRs for one or more orgs",
+		Version:       buildVersion(),
+		Args:          cobra.MatchAll(cobra.MinimumNArgs(1), cobra.OnlyValidArgs),
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			orgs := args
@@ -42,8 +44,8 @@ func rootCmd() *cobra.Command {
 			return run(orgs, opts)
 		},
 	}
+	cmd.SetVersionTemplate("{{.Version}}\n")
 
-	cmd.Flags().BoolVar(&opts.Version, "version", false, "show version")
 	cmd.Flags().StringArrayVarP(&opts.Excludes, "exclude", "e", []string{}, "exclude repositories")
 	cmd.Flags().IntVarP(&opts.Limit, "limit", "l", 50, "Max number of search results in all repository")
 	cmd.Flags().StringVarP(&opts.Author, "author", "a", "", "Filter by author")
@@ -55,15 +57,6 @@ func rootCmd() *cobra.Command {
 }
 
 func run(orgs []string, opts *Options) error {
-	if opts.Version {
-		if info, ok := debug.ReadBuildInfo(); ok {
-			fmt.Println(info.Main.Version)
-			return nil
-		} else {
-			return errors.New("could not read build info")
-		}
-	}
-
 	type result struct {
 		repositories []RepositoryItem
 		err          error
