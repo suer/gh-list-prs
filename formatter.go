@@ -53,11 +53,11 @@ func (cf *ColorFormatter) FormatTitle(pri *PullRequestItem) string {
 
 func (cf *ColorFormatter) FormatCheckStatus(pri *PullRequestItem) string {
 	switch pri.CheckStatus {
-	case "SUCCESS":
+	case checkStatusSuccess:
 		return aurora.Green("✔").String()
-	case "FAILURE":
+	case checkStatusFailure:
 		return aurora.Red("✘").String()
-	case "PENDING":
+	case checkStatusPending:
 		return "⏳"
 	default:
 		return ""
@@ -65,7 +65,7 @@ func (cf *ColorFormatter) FormatCheckStatus(pri *PullRequestItem) string {
 }
 
 func (cf *ColorFormatter) FormatReviewDecision(pri *PullRequestItem) string {
-	if pri.ReviewDecision == "APPROVED" {
+	if pri.ReviewDecision == reviewDecisionApproved {
 		return aurora.Magenta("✓").String()
 	}
 	return ""
@@ -100,11 +100,11 @@ func (ncf *NoColorFormatter) FormatTitle(pri *PullRequestItem) string {
 
 func (ncf *NoColorFormatter) FormatCheckStatus(pri *PullRequestItem) string {
 	switch pri.CheckStatus {
-	case "SUCCESS":
+	case checkStatusSuccess:
 		return "✔"
-	case "FAILURE":
+	case checkStatusFailure:
 		return "✘"
-	case "PENDING":
+	case checkStatusPending:
 		return "⏳"
 	default:
 		return ""
@@ -112,7 +112,7 @@ func (ncf *NoColorFormatter) FormatCheckStatus(pri *PullRequestItem) string {
 }
 
 func (ncf *NoColorFormatter) FormatReviewDecision(pri *PullRequestItem) string {
-	if pri.ReviewDecision == "APPROVED" {
+	if pri.ReviewDecision == reviewDecisionApproved {
 		return "✓"
 	}
 	return ""

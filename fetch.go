@@ -10,6 +10,15 @@ import (
 	graphql "github.com/cli/shurcooL-graphql"
 )
 
+const (
+	checkStatusSuccess = "SUCCESS"
+	checkStatusFailure = "FAILURE"
+	checkStatusPending = "PENDING"
+	checkStatusUnknown = "UNKNOWN"
+)
+
+const reviewDecisionApproved = "APPROVED"
+
 type Commits struct {
 	Nodes []struct {
 		Commit struct {
@@ -37,7 +46,7 @@ type PullRequest struct {
 }
 
 func (pr *PullRequest) toPullRequestItem() PullRequestItem {
-	checkStatus := "PENDING"
+	checkStatus := checkStatusUnknown
 	if len(pr.Commits.Nodes) > 0 {
 		checkStatus = pr.Commits.Nodes[0].Commit.StatusCheckRollup.State
 	}
