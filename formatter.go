@@ -14,6 +14,7 @@ type Formatter interface {
 	FormatTitle(pri *PullRequestItem) string
 	FormatCheckStatus(pri *PullRequestItem) string
 	FormatReviewDecision(pri *PullRequestItem) string
+	FormatMergeable(pri *PullRequestItem) string
 	FormatRepositoryName(name string) string
 }
 
@@ -71,6 +72,13 @@ func (cf *ColorFormatter) FormatReviewDecision(pri *PullRequestItem) string {
 	return ""
 }
 
+func (cf *ColorFormatter) FormatMergeable(pri *PullRequestItem) string {
+	if pri.Mergeable == mergeableStateConflicting {
+		return "⚔️"
+	}
+	return ""
+}
+
 func (cf *ColorFormatter) FormatRepositoryName(name string) string {
 	repoLink := fmt.Sprintf("https://github.com/%s", name)
 	return aurora.Hyperlink(name, repoLink).String()
@@ -114,6 +122,13 @@ func (ncf *NoColorFormatter) FormatCheckStatus(pri *PullRequestItem) string {
 func (ncf *NoColorFormatter) FormatReviewDecision(pri *PullRequestItem) string {
 	if pri.ReviewDecision == reviewDecisionApproved {
 		return "✓"
+	}
+	return ""
+}
+
+func (ncf *NoColorFormatter) FormatMergeable(pri *PullRequestItem) string {
+	if pri.Mergeable == mergeableStateConflicting {
+		return "⚔️"
 	}
 	return ""
 }

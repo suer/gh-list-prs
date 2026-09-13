@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
 type columnWidths struct {
@@ -16,10 +17,18 @@ func (pri *PullRequestItem) printLine(widths columnWidths, formatter Formatter) 
 	login := formatter.FormatAuthor(pri)
 	updatedAt := formatter.FormatUpdatedAt(pri)
 	title := formatter.FormatTitle(pri)
-	statusSymbol := formatter.FormatCheckStatus(pri)
-	reviewDecision := formatter.FormatReviewDecision(pri)
+	symbols := make([]string, 0, 3)
+	for _, s := range []string{formatter.FormatMergeable(pri), formatter.FormatCheckStatus(pri), formatter.FormatReviewDecision(pri)} {
+		if s != "" {
+			symbols = append(symbols, s)
+		}
+	}
 
-	fmt.Printf("%s%-*s%-*s %-*s %s %s %s\n", numberString, numberPadding+1, "", widths.author, login, widths.updatedAt, updatedAt, title, statusSymbol, reviewDecision)
+	line := fmt.Sprintf("%s%-*s%-*s %-*s %s", numberString, numberPadding+1, "", widths.author, login, widths.updatedAt, updatedAt, title)
+	if len(symbols) > 0 {
+		line += " " + strings.Join(symbols, " ")
+	}
+	fmt.Println(line)
 }
 
 func (ri *RepositoryItem) printList(opts *Options) {

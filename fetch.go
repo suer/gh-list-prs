@@ -19,6 +19,8 @@ const (
 
 const reviewDecisionApproved = "APPROVED"
 
+const mergeableStateConflicting = "CONFLICTING"
+
 type Commits struct {
 	Nodes []struct {
 		Commit struct {
@@ -39,6 +41,7 @@ type PullRequest struct {
 		Login string
 	}
 	ReviewDecision string
+	Mergeable      string
 	Repository     struct {
 		NameWithOwner string
 	}
@@ -61,6 +64,7 @@ func (pr *PullRequest) toPullRequestItem() PullRequestItem {
 		RepositoryName: pr.Repository.NameWithOwner,
 		CheckStatus:    checkStatus,
 		ReviewDecision: pr.ReviewDecision,
+		Mergeable:      pr.Mergeable,
 	}
 }
 
@@ -89,6 +93,7 @@ type PullRequestItem struct {
 	RepositoryName string
 	CheckStatus    string
 	ReviewDecision string
+	Mergeable      string
 }
 
 func formatQueryString(org string, opts *Options) string {
