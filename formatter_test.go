@@ -240,6 +240,46 @@ func TestColorFormatterFormatReviewDecision(t *testing.T) {
 	}
 }
 
+func TestColorFormatterFormatMergeable(t *testing.T) {
+	cf := &ColorFormatter{}
+	tests := []struct {
+		name       string
+		mergeable  string
+		wantSymbol string
+		wantEmpty  bool
+	}{
+		{
+			name:       "conflicting",
+			mergeable:  "CONFLICTING",
+			wantSymbol: "⚔️",
+		},
+		{
+			name:      "mergeable",
+			mergeable: "MERGEABLE",
+			wantEmpty: true,
+		},
+		{
+			name:      "unknown",
+			mergeable: "UNKNOWN",
+			wantEmpty: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pri := &PullRequestItem{Mergeable: tt.mergeable}
+			result := cf.FormatMergeable(pri)
+			if tt.wantEmpty {
+				if result != "" {
+					t.Errorf("FormatMergeable() = %q, want empty string", result)
+				}
+			} else if !strings.Contains(result, tt.wantSymbol) {
+				t.Errorf("FormatMergeable() = %q, want to contain %q", result, tt.wantSymbol)
+			}
+		})
+	}
+}
+
 func TestColorFormatterFormatRepositoryName(t *testing.T) {
 	cf := &ColorFormatter{}
 	tests := []struct {
@@ -420,6 +460,41 @@ func TestNoColorFormatterFormatRepositoryName(t *testing.T) {
 
 	if result != repoName {
 		t.Errorf("FormatRepositoryName() = %q, want %q", result, repoName)
+	}
+}
+
+func TestNoColorFormatterFormatMergeable(t *testing.T) {
+	ncf := &NoColorFormatter{}
+	tests := []struct {
+		name      string
+		mergeable string
+		want      string
+	}{
+		{
+			name:      "conflicting",
+			mergeable: "CONFLICTING",
+			want:      "⚔️",
+		},
+		{
+			name:      "mergeable",
+			mergeable: "MERGEABLE",
+			want:      "",
+		},
+		{
+			name:      "unknown",
+			mergeable: "UNKNOWN",
+			want:      "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pri := &PullRequestItem{Mergeable: tt.mergeable}
+			result := ncf.FormatMergeable(pri)
+			if result != tt.want {
+				t.Errorf("FormatMergeable() = %q, want %q", result, tt.want)
+			}
+		})
 	}
 }
 
