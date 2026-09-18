@@ -5,7 +5,7 @@ go 1.26.1
 require (
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10
-	github.com/cli/go-gh/v2 v2.16.0
+	github.com/cli/go-gh/v2 v2.16.1
 	github.com/cli/shurcooL-graphql v0.0.4
 	github.com/logrusorgru/aurora/v4 v4.0.0
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
