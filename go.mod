@@ -1,6 +1,6 @@
 module github.com/suer/gh-list-prs
 
-go 1.26.1
+go 1.27.3
 
 require (
 	github.com/charmbracelet/bubbles v1.0.0
