@@ -322,3 +322,25 @@ func TestGroupAndSortPullRequests(t *testing.T) {
 		}
 	}
 }
+
+func TestStripControlChars(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{name: "plain text", input: "Fix bug", want: "Fix bug"},
+		{name: "multibyte text", input: "バグ修正 ✔", want: "バグ修正 ✔"},
+		{name: "ANSI escape", input: "\x1b[31mred\x1b[0m", want: "[31mred[0m"},
+		{name: "OSC hyperlink", input: "a\x1b]8;;http://evil\x07b", want: "a]8;;http://evilb"},
+		{name: "newline and tab", input: "a\nb\tc\rd", want: "abcd"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := stripControlChars(tt.input); got != tt.want {
+				t.Errorf("stripControlChars(%q) = %q, want %q", tt.input, got, tt.want)
+			}
+		})
+	}
+}
