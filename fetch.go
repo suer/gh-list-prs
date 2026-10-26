@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/cli/go-gh/v2/pkg/api"
 	graphql "github.com/cli/shurcooL-graphql"
@@ -56,8 +57,8 @@ func (pr *PullRequest) toPullRequestItem() PullRequestItem {
 
 	return PullRequestItem{
 		Number:         pr.Number,
-		Title:          pr.Title,
-		Author:         pr.Author.Login,
+		Title:          stripControlChars(pr.Title),
+		Author:         stripControlChars(pr.Author.Login),
 		UpdatedAt:      pr.UpdatedAt,
 		IsDraft:        pr.IsDraft,
 		Url:            pr.Url,
@@ -66,6 +67,15 @@ func (pr *PullRequest) toPullRequestItem() PullRequestItem {
 		ReviewDecision: pr.ReviewDecision,
 		Mergeable:      pr.Mergeable,
 	}
+}
+
+func stripControlChars(s string) string {
+	return strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) {
+			return -1
+		}
+		return r
+	}, s)
 }
 
 type Search struct {
