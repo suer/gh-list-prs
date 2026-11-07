@@ -106,8 +106,25 @@ type PullRequestItem struct {
 	Mergeable      string
 }
 
+func stateQuery(state string) string {
+	switch state {
+	case stateClosed:
+		return "is:closed -is:merged"
+	case stateMerged:
+		return "is:merged"
+	case stateAll:
+		return ""
+	default:
+		return "is:open"
+	}
+}
+
 func formatQueryString(org string, opts *Options) string {
-	queryString := fmt.Sprintf("is:open is:pr archived:false org:%s", org)
+	queryString := ""
+	if sq := stateQuery(opts.State); sq != "" {
+		queryString = sq + " "
+	}
+	queryString += fmt.Sprintf("is:pr archived:false org:%s", org)
 	for _, exclude := range opts.Excludes {
 		if strings.Contains(exclude, "/") {
 			queryString += fmt.Sprintf(" -repo:%s", exclude)
