@@ -9,7 +9,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	stateOpen   = "open"
+	stateClosed = "closed"
+	stateMerged = "merged"
+	stateAll    = "all"
+)
+
 type Options struct {
+	State             string
 	Limit             int
 	Excludes          []string
 	Author            string
@@ -40,6 +48,9 @@ func rootCmd() *cobra.Command {
   # Exclude repositories (repeatable)
   gh list-prs my-org -e legacy-repo -e my-org/archived-repo
 
+  # Merged PRs reviewed by you in October 2026
+  gh list-prs my-org -s merged -q "reviewed-by:@me" -q "merged:2026-10-01..2026-10-31"
+
   # Combine search queries (repeatable)
   gh list-prs my-org -q "-is:draft" -q "-review:approved"
 
@@ -55,6 +66,12 @@ func rootCmd() *cobra.Command {
 				return errors.New("invalid limit")
 			}
 
+			switch opts.State {
+			case stateOpen, stateClosed, stateMerged, stateAll:
+			default:
+				return fmt.Errorf("invalid state %q: must be one of open, closed, merged, all", opts.State)
+			}
+
 			return run(orgs, opts)
 		},
 	}
@@ -62,6 +79,7 @@ func rootCmd() *cobra.Command {
 
 	cmd.Flags().StringArrayVarP(&opts.Excludes, "exclude", "e", []string{}, "Exclude `repository`; repeatable")
 	cmd.Flags().IntVarP(&opts.Limit, "limit", "l", 50, "Max `number` of search results in all repository")
+	cmd.Flags().StringVarP(&opts.State, "state", "s", stateOpen, "PR `state`: open, closed (unmerged), merged, all")
 	cmd.Flags().StringVarP(&opts.Author, "author", "a", "", "Filter by author `login`")
 	cmd.Flags().StringArrayVarP(&opts.AdditionalQueries, "additional-query", "q", []string{}, "Additional GitHub search `query`; repeatable (e.g. \"label:bug\", \"-is:draft\", \"-review:approved\", \"NOT bump in:title\")")
 	cmd.Flags().BoolVarP(&opts.Verbose, "verbose", "v", false, "verbose output")

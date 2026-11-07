@@ -32,6 +32,27 @@ func TestFormatQueryString(t *testing.T) {
 			wantNotContain: []string{},
 		},
 		{
+			name:           "state merged",
+			org:            "myorg",
+			opts:           &Options{State: "merged"},
+			wantContains:   []string{"is:merged", "is:pr", "org:myorg"},
+			wantNotContain: []string{"is:open"},
+		},
+		{
+			name:           "state closed",
+			org:            "myorg",
+			opts:           &Options{State: "closed"},
+			wantContains:   []string{"is:closed", "-is:merged"},
+			wantNotContain: []string{"is:open"},
+		},
+		{
+			name:           "state all",
+			org:            "myorg",
+			opts:           &Options{State: "all"},
+			wantContains:   []string{"is:pr", "org:myorg"},
+			wantNotContain: []string{"is:open", "is:closed", "is:merged"},
+		},
+		{
 			name: "with excludes",
 			org:  "myorg",
 			opts: &Options{
